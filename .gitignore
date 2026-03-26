@@ -13,6 +13,17 @@ dist-ssr
 *.local
 .env
 
+# Wrangler / Cloudflare
+.wrangler/
+
+# Remix build output
+/public/build/
+/functions/[[path]].js
+/functions/[[path]].js.map
+/functions/metafile.js.json
+/functions/metafile.server.json
+/functions/version.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
