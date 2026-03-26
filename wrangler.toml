@@ -1,0 +1,8 @@
+name = "scioedu-intranet"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./public"
+
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "session_storage"
+preview_id = "preview_session_storage"
