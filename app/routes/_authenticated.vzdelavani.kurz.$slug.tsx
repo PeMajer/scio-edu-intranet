@@ -1,5 +1,5 @@
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData, Form, useNavigation } from "@remix-run/react";
+import { useLoaderData, Form, useNavigation, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "~/components/ui/dialog";
+import { PageHeader } from "~/components/layout/page-header";
 import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -71,15 +72,21 @@ export default function KurzDetail() {
 
   if (course.is_external) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="max-w-4xl">
+        <PageHeader
+          title={course.title}
+          breadcrumbs={[
+            { label: "Vzdělávání", href: "/vzdelavani" },
+            { label: course.title },
+          ]}
+        />
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <Badge variant="outline" className="mb-3">Externí kurz</Badge>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
                 {course.highlight && (
-                  <p className="text-lg text-[#687A7C]">{course.highlight}</p>
+                  <p className="text-lg text-muted-foreground">{course.highlight}</p>
                 )}
                 {course.tags && course.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -105,7 +112,7 @@ export default function KurzDetail() {
             {course.target_audience && (
               <div>
                 <h3 className="font-semibold mb-2">Pro koho je kurz určen</h3>
-                <p className="text-[#687A7C]">{course.target_audience}</p>
+                <p className="text-muted-foreground">{course.target_audience}</p>
               </div>
             )}
 
@@ -120,7 +127,7 @@ export default function KurzDetail() {
                   <div>
                     <p className="font-semibold">{course.lecturer.name}</p>
                     {course.lecturer.bio && (
-                      <p className="text-sm text-[#687A7C] mt-1">{course.lecturer.bio}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
                     )}
                   </div>
                 </div>
@@ -142,15 +149,21 @@ export default function KurzDetail() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="max-w-6xl">
+      <PageHeader
+        title={course.title}
+        breadcrumbs={[
+          { label: "Vzdělávání", href: "/vzdelavani" },
+          { label: course.title },
+        ]}
+      />
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <Badge variant="secondary" className="w-fit mb-3">Interní kurz</Badge>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
               {course.highlight && (
-                <p className="text-lg text-[#687A7C]">{course.highlight}</p>
+                <p className="text-lg text-muted-foreground">{course.highlight}</p>
               )}
               {course.tags && course.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -174,14 +187,14 @@ export default function KurzDetail() {
               {course.target_audience && (
                 <div>
                   <h3 className="font-semibold mb-2">Pro koho je kurz určen</h3>
-                  <p className="text-[#687A7C]">{course.target_audience}</p>
+                  <p className="text-muted-foreground">{course.target_audience}</p>
                 </div>
               )}
 
               {course.benefits && course.benefits.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-2">Co získáte</h3>
-                  <ul className="list-disc list-inside space-y-1 text-[#687A7C]">
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {course.benefits.map((benefit, idx) => (
                       <li key={idx}>{benefit}</li>
                     ))}
@@ -199,7 +212,7 @@ export default function KurzDetail() {
                         href={material.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-[#1DA2AC] hover:underline"
+                        className="flex items-center gap-2 text-primary hover:underline"
                       >
                         <ExternalLink className="w-4 h-4" />
                         {material.label}
@@ -225,10 +238,10 @@ export default function KurzDetail() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{course.lecturer.name}</h3>
                     {course.lecturer.bio && (
-                      <p className="text-[#687A7C] mt-2">{course.lecturer.bio}</p>
+                      <p className="text-muted-foreground mt-2">{course.lecturer.bio}</p>
                     )}
                     {course.lecturer.email && (
-                      <a href={`mailto:${course.lecturer.email}`} className="flex items-center gap-2 text-[#1DA2AC] mt-3 text-sm">
+                      <a href={`mailto:${course.lecturer.email}`} className="flex items-center gap-2 text-primary mt-3 text-sm">
                         <Mail className="w-4 h-4" />
                         {course.lecturer.email}
                       </a>
@@ -248,12 +261,12 @@ export default function KurzDetail() {
             <CardContent className="space-y-4">
               {course.duration_minutes && (
                 <div className="flex items-center gap-3 text-sm">
-                  <Clock className="w-5 h-5 text-[#687A7C]" />
+                  <Clock className="w-5 h-5 text-muted-foreground" />
                   <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
                 </div>
               )}
               {course.price !== undefined && (
-                <div className="text-2xl font-bold text-[#1DA2AC]">
+                <div className="text-2xl font-bold text-primary">
                   {course.price === 0 ? "Zdarma" : `${course.price} Kč`}
                 </div>
               )}
@@ -269,18 +282,18 @@ export default function KurzDetail() {
                 {course.dates.map((date, idx) => (
                   <Dialog key={idx}>
                     <DialogTrigger asChild>
-                      <button className="w-full text-left p-4 rounded-lg border hover:border-[#1DA2AC] hover:bg-[#BADEDF]/10 transition-all">
+                      <button className="w-full text-left p-4 rounded-lg border hover:border-primary hover:bg-accent/10 transition-all">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-[#687A7C]" />
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
                             <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-[#687A7C]">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <MapPin className="w-4 h-4" />
                             <span>{date.location}</span>
                           </div>
                           {date.capacity && (
-                            <div className="flex items-center gap-2 text-sm text-[#687A7C]">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Users className="w-4 h-4" />
                               <span>Kapacita: {date.capacity}</span>
                             </div>
@@ -296,9 +309,9 @@ export default function KurzDetail() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="p-4 bg-[#F5F7F8] rounded-lg space-y-2">
+                        <div className="p-4 bg-muted rounded-lg space-y-2">
                           <p className="font-semibold">{course.title}</p>
-                          <div className="text-sm text-[#687A7C] space-y-1">
+                          <div className="text-sm text-muted-foreground space-y-1">
                             <p>Termín: {format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</p>
                             <p>Místo: {date.location}</p>
                             {date.note && <p className="italic">{date.note}</p>}
@@ -335,7 +348,7 @@ export default function KurzDetail() {
                   <p className="font-semibold">{course.contact_name}</p>
                 )}
                 {course.contact_email && (
-                  <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-[#1DA2AC] text-sm">
+                  <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
                     <Mail className="w-4 h-4" />
                     {course.contact_email}
                   </a>

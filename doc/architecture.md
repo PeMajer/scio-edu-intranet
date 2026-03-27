@@ -22,34 +22,55 @@
 
 ```
 app/
-├── routes/                    # Remix file-based routing
-│   ├── _index.tsx             # Login stránka
-│   ├── auth.callback.tsx      # OAuth callback
-│   ├── portal._index.tsx      # Hlavní rozcestník
-│   ├── vzdelavani._index.tsx  # Vzdělávání landing
-│   ├── vzdelavani.novacek.tsx # Kurzy pro nováčky
-│   ├── vzdelavani.rust.tsx    # Kurzy osobního rozvoje
-│   ├── vzdelavani.tymy.tsx    # Týmové kurzy
-│   ├── vzdelavani.kurz.$slug.tsx # Detail kurzu + zápis
-│   ├── koncepce.tsx           # Koncepce sekce
-│   ├── kalendar.tsx           # Google Calendar embed
-│   ├── moje-kurzy.tsx         # Moje zápisy
-│   └── admin.tsx              # Admin panel
+├── routes/                              # Remix file-based routing
+│   ├── _index.tsx                       # Login stránka (veřejná)
+│   ├── auth.callback.tsx                # OAuth callback
+│   ├── auth.logout.tsx                  # Logout action
+│   ├── _authenticated.tsx               # Layout route — header, footer, container (pathless)
+│   ├── _authenticated.portal._index.tsx # Hlavní rozcestník (dashboard)
+│   ├── _authenticated.vzdelavani._index.tsx    # Vzdělávání landing
+│   ├── _authenticated.vzdelavani.novacek.tsx   # Kurzy pro nováčky
+│   ├── _authenticated.vzdelavani.rust.tsx      # Kurzy osobního rozvoje
+│   ├── _authenticated.vzdelavani.tymy.tsx      # Týmové kurzy
+│   ├── _authenticated.vzdelavani.kurz.$slug.tsx # Detail kurzu + zápis
+│   ├── _authenticated.koncepce.tsx      # Koncepce sekce
+│   ├── _authenticated.kalendar.tsx      # Google Calendar
+│   ├── _authenticated.moje-kurzy.tsx    # Moje zápisy
+│   └── _authenticated.admin.tsx         # Admin panel
 ├── components/
-│   └── ui/                   # shadcn/ui komponenty
+│   ├── layout/               # Layout komponenty
+│   │   ├── header.tsx        # Sticky header s navigací + user dropdown + mobile Sheet
+│   │   ├── footer.tsx        # Footer s logem a copyright
+│   │   ├── page-header.tsx   # Hlavička stránky (h1 + popis + breadcrumbs + volitelný hero banner)
+│   │   └── section-header.tsx # Nadpis sekce s ikonou (sidebar karty)
+│   ├── ui/                   # shadcn/ui komponenty (button, card, badge, avatar, dialog, sheet, dropdown-menu, separator, breadcrumb)
+│   ├── course-card.tsx       # Karta kurzu s obrázkem
+│   └── logo.tsx              # Logo komponenta (PNG s CSS filter variantami)
 ├── lib/
 │   ├── supabase.server.ts    # Supabase client + session helpers
-│   ├── sanity.server.ts      # Sanity client + GROQ queries
+│   ├── sanity.server.ts      # Sanity client + GROQ queries + image URL builder
 │   ├── types.ts              # TypeScript typy (Course, Enrollment, Profile…)
 │   └── cn.ts                 # clsx + tailwind-merge helper
 └── tailwind.css              # Globální styly + CSS variables
 
+public/
+└── images/                   # Statické obrázky (logo, hero fotky)
+
 sanity/
-└── schema.ts                 # Schéma: course, lecturer, sectionPage
+└── schemas/                  # Sanity schémata: course, lecturer, sectionPage, blockContent
 
 supabase/
 └── migrations/               # SQL migrace
 ```
+
+### Authenticated layout route
+
+Všechny chráněné stránky jsou children `_authenticated.tsx` (pathless layout route). URL se nemění — prefix `_authenticated.` je jen routing convention. Layout poskytuje:
+- `<Header>` se sticky navigací, user dropdown, mobile Sheet menu
+- `<main>` s container wrapperem (`container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl`)
+- `<Footer>`
+
+Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery paralelně).
 
 ## Databázové schéma (Supabase)
 

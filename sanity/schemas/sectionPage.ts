@@ -48,6 +48,13 @@ export const sectionPage = {
       ],
       description: 'Odkazy na Google Drive dokumenty, podcasty, externí weby apod.',
     },
+    {
+      name: 'cover_image',
+      title: 'Obrázek sekce',
+      type: 'image',
+      options: { hotspot: true },
+      description: 'Hero obrázek zobrazený v hlavičce stránky sekce',
+    },
     { name: 'is_visible', title: 'Viditelná', type: 'boolean', initialValue: true },
     { name: 'order', title: 'Pořadí', type: 'number', initialValue: 0 },
   ],

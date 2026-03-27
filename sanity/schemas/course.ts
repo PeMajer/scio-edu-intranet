@@ -41,14 +41,13 @@ export const course = {
       type: 'string',
       options: {
         list: [
-          { title: 'Kurzy pro nováčky', value: 'kurzy-novacek' },
-          { title: 'Hledám informace', value: 'informace' },
           { title: 'Kurzy na ScioCíle', value: 'sciocile' },
           { title: 'Řemeslo průvodce', value: 'remeslo' },
           { title: 'Osobní rozvoj', value: 'osobni-rozvoj' },
         ],
       },
-      description: 'Podsekce v rámci kategorie (volitelné)',
+      description: 'Pouze pro sekci „Vzdělávání a růst pro každého" — rozdělení kurzů do skupin. Pro ostatní sekce nevyplňujte.',
+      hidden: ({ parent }: { parent: { section?: string } }) => parent?.section !== 'rust',
     },
     {
       name: 'tags',
