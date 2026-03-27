@@ -32,12 +32,13 @@ Soubory `*.server.ts` se nikdy neimportují v komponentách bez `loader`/`action
 - Typy kurzů, zápisů, profilů jsou v `app/lib/types.ts` — přidávat tam, ne lokálně
 - Server Component není v Remixu pojem — každá route je server+client; `loader` = server, JSX = client
 
-## Tailwind v3
+## Tailwind v4
 
-- Projekt používá Tailwind **v3** (ne v4) — má `tailwind.config.js`
-- `container` třída je nakonfigurovaná
+- Projekt používá Tailwind **v4** — CSS-first konfigurace v `app/tailwind.css` (`@theme` blok)
+- Žádný `tailwind.config.js` — vše v CSS
 - Barvy přes utility třídy: `bg-primary`, `text-foreground`, `border-border` atd.
 - Nikdy raw hex v className ani style={{ }} — vždy přes Tailwind třídy nebo CSS variables
+- Vyžaduje **Node.js >= 22** (viz `.nvmrc`)
 
 ## Autentizace
 

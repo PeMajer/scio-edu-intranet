@@ -8,7 +8,7 @@
 | Runtime | Cloudflare Workers | Edge, bez Node.js |
 | Databáze | Supabase (PostgreSQL) | RLS na všech tabulkách |
 | CMS | Sanity.io | Kurzy, lektoři, sekce |
-| Stylování | Tailwind CSS v3 + shadcn/ui | HSL CSS variables, `tailwind.config.js` |
+| Stylování | Tailwind CSS v4 + shadcn/ui | HSL CSS variables, CSS-first `@theme` v `app/tailwind.css` |
 | Auth | Supabase Auth + Google OAuth | Omezeno na `@scioskola.cz` |
 | Deploy | Cloudflare Pages | `npm run deploy` |
 
@@ -73,7 +73,7 @@ supabase/
 | light | `#BADEDF` | Light turquoise — pozadí karet |
 | background | `#F5F7F8` | Stránkové pozadí |
 
-Barvy jsou v `tailwind.config.js` jako HSL CSS variables (`hsl(var(--primary))`).
+Barvy jsou v `app/tailwind.css` v `@theme` bloku jako HSL CSS variables (`hsl(var(--primary))`). Vyžaduje Node.js >= 22 (viz `.nvmrc`).
 
 ## Klíčové příkazy
 
