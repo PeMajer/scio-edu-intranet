@@ -87,18 +87,60 @@ grid gap-6 lg:grid-cols-2                  // 2-sloupcový responsive
 ### `<PageHeader>`
 Povinná komponenta pro každou stránku. Zajišťuje konzistentní h1 velikost.
 
+Dvě varianty:
+- **Plain** (bez `imageUrl`) — klasický nadpis + popis na bílém pozadí
+- **Hero banner** (s `imageUrl`) — fotka na pozadí s tyrkysovým gradient overlay, bílý text
+
 ```tsx
 import { PageHeader } from "~/components/layout/page-header";
 
+// Hero banner varianta (preferovaná na hlavních stránkách)
 <PageHeader
-  title="Název stránky"
-  description="Volitelný podtitulek"
+  title="Vzdělávání"
+  description="Vyberte si z našich vzdělávacích kategorií"
+  imageUrl="/images/hero-classroom.jpg"
   breadcrumbs={[
     { label: "Vzdělávání", href: "/vzdelavani" },
-    { label: "Aktuální stránka" }, // poslední bez href
+    { label: "Aktuální stránka" },
   ]}
-  actions={<Button>Volitelná akce</Button>}
 />
+
+// Plain varianta (admin, pomocné stránky)
+<PageHeader title="Administrace" description="Správa přihlášek" />
+```
+
+**Obrázky pro hero:** Preferovat ze Sanity (`cover_image` na `sectionPage`), fallback na `/images/hero-*.jpg`.
+
+### `<SectionHeader>`
+Nadpis sekce s ikonou v boxíku — pro konzistentní headery v sidebar kartách a sekcích.
+
+```tsx
+import { SectionHeader } from "~/components/layout/section-header";
+<SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
+```
+
+### `<CourseCard>`
+Karta kurzu s obrázkem, cenou, hover efektem. Pokud kurz nemá obrázek v Sanity, použije se deterministický placeholder.
+
+```tsx
+import { CourseCard } from "~/components/course-card";
+<CourseCard
+  title={course.title}
+  slug={course.slug.current}
+  highlight={course.highlight}
+  price={course.price}
+  isExternal={course.is_external}
+  imageUrl={course.imageUrl}  // ze Sanity imageUrlBuilder
+/>
+```
+
+### `<Logo>`
+PNG logo ScioEdu s CSS filter variantami.
+
+```tsx
+import { Logo } from "~/components/logo";
+<Logo size="sm" variant="color" />   // barevné
+<Logo size="lg" variant="white" />   // bílé (na tmavém pozadí)
 ```
 
 ### `<Header>` a `<Footer>`
@@ -108,6 +150,30 @@ Automaticky renderovány layout routou. Neimportovat ručně v route komponentá
 - Desktop: horizontální menu v headeru
 - Mobile (< 768px): Sheet drawer (hamburger menu)
 - Aktivní stav: `text-primary bg-primary/10`
+
+---
+
+## Page layout patterny
+
+### 2/3 + 1/3 layout (hlavní pattern)
+Používá se na: Dashboard, kategorie kurzů, kalendář.
+
+```tsx
+<div className="grid lg:grid-cols-3 gap-6">
+  <div className="lg:col-span-2">
+    {/* Hlavní obsah — kurzy, kalendář grid */}
+  </div>
+  <div className="space-y-6">
+    {/* Sidebar — události, materiály, koncepce */}
+  </div>
+</div>
+```
+
+### Image card pattern
+Karta s fotkou nahoře, gradient overlay, hover zoom. Používá se pro: kategorie vzdělávání, quick links na dashboardu, CourseCard.
+
+### Event item pattern
+Date pill (měsíc + den) vlevo, event info vpravo, Separator mezi položkami. Používá se na: dashboard sidebar, kalendář sidebar.
 
 ---
 
