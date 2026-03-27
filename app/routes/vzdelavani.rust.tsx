@@ -5,24 +5,37 @@ import { createSanityClient } from "~/lib/sanity.server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Target, Wrench, Sparkles, BookOpen } from "lucide-react";
+import { Target, Wrench, Sparkles, BookOpen, ExternalLink } from "lucide-react";
+import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
+
+type Resource = { label: string; url: string; type?: string };
+type SectionPage = { intro_text?: any[]; resources?: Resource[] };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
 
   const sanity = createSanityClient(context);
-  const courses = await sanity.fetch<Course[]>(
-    `*[_type == "course" && section == "rust" && is_published == true] | order(_createdAt desc)`
-  );
+  const [courses, sectionPage] = await Promise.all([
+    sanity.fetch<Course[]>(
+      `*[_type == "course" && section == "rust" && is_published == true] | order(_createdAt desc)`
+    ),
+    sanity.fetch<SectionPage | null>(
+      `*[_type == "sectionPage" && section_key == "rust" && is_visible == true][0]{ intro_text, resources }`
+    ),
+  ]);
 
   const subsections = {
     "sciocile": courses.filter(c => c.subsection === "sciocile"),
     "remeslo": courses.filter(c => c.subsection === "remeslo"),
-    "osobni": courses.filter(c => c.subsection === "osobni"),
+    "osobni-rozvoj": courses.filter(c => c.subsection === "osobni-rozvoj"),
   };
 
-  return json({ subsections }, { headers });
+  return json({
+    subsections,
+    introText: sectionPage?.intro_text ?? null,
+    resources: sectionPage?.resources ?? [],
+  }, { headers });
 }
 
 const subsectionConfig = {
@@ -36,7 +49,7 @@ const subsectionConfig = {
     description: "Praktické dovednosti pro práci průvodce",
     icon: Wrench,
   },
-  osobni: {
+  "osobni-rozvoj": {
     title: "Osobní rozvoj",
     description: "Kurzy zaměřené na osobní růst a seberozvoj",
     icon: Sparkles,
@@ -44,7 +57,7 @@ const subsectionConfig = {
 };
 
 export default function VzdelavaniRust() {
-  const { subsections } = useLoaderData<typeof loader>();
+  const { subsections, introText, resources } = useLoaderData<typeof loader>();
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -55,6 +68,11 @@ export default function VzdelavaniRust() {
         <p className="text-lg text-[#687A7C]">
           Kurzy zaměřené na osobní rozvoj a odborné dovednosti
         </p>
+        {introText && (
+          <div className="prose prose-gray max-w-none mt-4">
+            <PortableText value={introText} />
+          </div>
+        )}
       </div>
 
       <div className="space-y-8">
@@ -117,6 +135,31 @@ export default function VzdelavaniRust() {
             </Card>
           );
         })}
+
+        {resources.length > 0 && (
+          <Card className="bg-[#BADEDF]/20">
+            <CardHeader>
+              <CardTitle>Materiály a odkazy</CardTitle>
+              <CardDescription>Další zdroje pro váš rozvoj</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {resources.map((resource, i) => (
+                  <a
+                    key={i}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-[#1DA2AC] hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4 shrink-0" />
+                    {resource.label}
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
