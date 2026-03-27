@@ -4,8 +4,22 @@ Internal intranet for the ScioPolis organization. Login via Google OAuth restric
 
 ## Detailed docs
 
-- **Architecture & stack:** `.claude/docs/architecture.md`
-- **Conventions & shadcn/ui:** `.claude/docs/conventions.md`
+- **Architecture & stack:** `doc/architecture.md`
+- **Conventions & shadcn/ui:** `doc/conventions.md`
+- **Testing & lint:** `doc/testing.md`
+- **Project plan:** `doc/project-plan.md`
+- **Setup guide:** `doc/setup.md`
+
+---
+
+## Skills (custom commands)
+
+| Command | Purpose |
+|---------|---------|
+| `/review` | Kompletní pre-commit review (ESLint, TypeScript, build, kvalita, bezpečnost) |
+| `/run-tests` | Spuštění lint + typecheck + build pro změněné soubory |
+| `/session-end` | Ukončení session — stav, shrnutí, memory |
+| `/systematic-debugging` | Strukturovaný debugging po 3+ neúspěšných pokusech |
 
 ---
 
@@ -22,8 +36,6 @@ Internal intranet for the ScioPolis organization. Login via Google OAuth restric
 **Failure = stop and reassess** — if an approach doesn't work on the first or second try, don't keep repeating the same thing. Stop, diagnose the root cause, change the approach. After 3 failed attempts use `/systematic-debugging`.
 
 **Evidence first** — never say "should work" without running the command and reading the output. Done = green output in the terminal.
-
-**Use specialized agents** — for Rails/RSpec use `backend-rails`, for Vue use `frontend-vue`, for React use `frontend-react`. Agents have specialized context and are faster than the general approach.
 
 ---
 
@@ -43,6 +55,7 @@ Internal intranet for the ScioPolis organization. Login via Google OAuth restric
 - Never add a new shadcn component if an existing one can be extended
 - Never chain `git add` and `git commit` with `&&`
 - Never store sensitive values (tokens, keys) in code — only via env variables
+- Never import `.server.ts` files in client components
 
 ---
 
@@ -53,6 +66,7 @@ Internal intranet for the ScioPolis organization. Login via Google OAuth restric
 3. New branch: `git checkout main && git pull origin main && git checkout -b [type/description]`
 4. Naming: `feature/`, `fix/`, `issue-<number>`
 5. Implement → lint + build → commit → push → `gh pr create`
+6. Before commit run `/review` or at minimum: `npm run lint && npm run typecheck`
 
 Commit messages in English, concise.
 
