@@ -1,9 +1,17 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useState, useEffect } from "react";
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
+import { Link, useLoaderData, useFetcher } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "~/components/ui/dialog";
 import { PageHeader } from "~/components/layout/page-header";
 import { ArrowRight, Calendar, GraduationCap, MapPin } from "lucide-react";
 import { format } from "date-fns";
@@ -24,6 +32,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from("enrollments")
     .select("*")
     .eq("user_id", user.id)
+    .eq("status", "enrolled")
     .order("enrolled_at", { ascending: false });
 
   if (!enrollments || enrollments.length === 0) {
@@ -57,17 +66,85 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ enrollments: enriched }, { headers });
 }
 
-const statusColors = {
-  enrolled: "secondary",
-  completed: "default",
-  cancelled: "destructive",
-} as const;
+export async function action({ request, context }: ActionFunctionArgs) {
+  const { user, supabase, headers } = await requireAuth(request, context);
 
-const statusLabels = {
-  enrolled: "Přihlášen",
-  completed: "Dokončeno",
-  cancelled: "Zrušeno",
-};
+  const formData = await request.formData();
+  const enrollmentId = formData.get("enrollmentId") as string;
+
+  const { error } = await supabase
+    .from("enrollments")
+    .update({ status: "cancelled" })
+    .eq("id", enrollmentId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return json({ error: error.message }, { status: 400, headers });
+  }
+
+  return json({ success: true }, { headers });
+}
+
+function CancelButton({ enrollmentId, courseTitle, termDate, termLocation }: {
+  enrollmentId: string;
+  courseTitle?: string;
+  termDate?: string;
+  termLocation?: string;
+}) {
+  const fetcher = useFetcher<{ error?: string; success?: boolean }>();
+  const [open, setOpen] = useState(false);
+  const isSubmitting = fetcher.state === "submitting";
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setOpen(false);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="text-sm text-muted-foreground hover:text-destructive transition-colors">
+          Odhlásit se
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Odhlásit se z kurzu</DialogTitle>
+          <DialogDescription>
+            Opravdu se chcete odhlásit z tohoto kurzu?
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
+            {termDate && (
+              <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(termDate), "d. MMMM yyyy", { locale: cs })}</span></p>
+            )}
+            {termLocation && (
+              <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{termLocation}</span></p>
+            )}
+          </div>
+          {fetcher.data?.error && (
+            <p className="text-sm text-destructive">{fetcher.data.error}</p>
+          )}
+          <fetcher.Form method="post">
+            <input type="hidden" name="enrollmentId" value={enrollmentId} />
+            <Button
+              type="submit"
+              variant="destructive"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Odhlašuji..." : "Potvrdit odhlášení"}
+            </Button>
+          </fetcher.Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function MojeKurzy() {
   const { enrollments } = useLoaderData<typeof loader>();
@@ -107,13 +184,15 @@ export default function MojeKurzy() {
             const termLocation = course?.dates?.[enrollment.term_index]?.location;
 
             return (
-              <Link
+              <div
                 key={enrollment.id}
-                to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
-                className="group relative overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all flex flex-col"
+                className="relative overflow-hidden rounded-xl border bg-card flex flex-col"
               >
-                {/* Image */}
-                <div className="h-36 relative overflow-hidden">
+                {/* Image as link */}
+                <Link
+                  to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
+                  className="group h-36 relative overflow-hidden block"
+                >
                   <div
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
                     style={{
@@ -121,17 +200,15 @@ export default function MojeKurzy() {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-                  <div className="absolute top-3 right-3">
-                    <Badge variant={statusColors[enrollment.status]} className="text-xs shadow-md">
-                      {statusLabels[enrollment.status]}
-                    </Badge>
-                  </div>
-                </div>
+                </Link>
                 {/* Content */}
                 <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-2 line-clamp-2">
+                  <Link
+                    to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
+                    className="font-semibold text-foreground hover:text-primary transition-colors mb-2 line-clamp-2"
+                  >
                     {course?.title || "Neznámý kurz"}
-                  </h3>
+                  </Link>
                   <div className="space-y-1.5 flex-1">
                     {termDate && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -147,16 +224,22 @@ export default function MojeKurzy() {
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    <span className="text-xs text-muted-foreground">
-                      Přihlášeno {format(new Date(enrollment.enrolled_at), "d. M. yyyy", { locale: cs })}
-                    </span>
-                    <span className="text-sm font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                    <CancelButton
+                      enrollmentId={enrollment.id}
+                      courseTitle={course?.title}
+                      termDate={termDate}
+                      termLocation={termLocation}
+                    />
+                    <Link
+                      to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
+                      className="text-sm font-medium text-primary flex items-center gap-1 hover:gap-2 transition-all"
+                    >
                       Detail
                       <ArrowRight className="w-4 h-4" />
-                    </span>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

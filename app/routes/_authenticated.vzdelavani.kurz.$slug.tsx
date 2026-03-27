@@ -1,5 +1,6 @@
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData, Form, useNavigation, Link } from "@remix-run/react";
+import { useState, useEffect } from "react";
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
+import { useLoaderData, useFetcher, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -23,7 +24,7 @@ import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { user, headers } = await requireAuth(request, context);
+  const { user, supabase, headers } = await requireAuth(request, context);
 
   const sanity = createSanityClient(context);
   const course = await sanity.fetch<Course>(
@@ -42,34 +43,134 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const courseImage = course.image ? imageBuilder.image(course.image).width(800).url() : null;
   const lecturerPhoto = course.lecturer?.photo ? imageBuilder.image(course.lecturer.photo).width(200).url() : null;
 
-  return json({ course, courseImage, lecturerPhoto, userId: user.id }, { headers });
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("course_id", course._id)
+    .eq("status", "enrolled");
+
+  const enrolledTerms = new Set((enrollments || []).map((e: { term_index: number }) => e.term_index));
+
+  return json({ course, courseImage, lecturerPhoto, userId: user.id, enrolledTerms: [...enrolledTerms] }, { headers });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
 
   const formData = await request.formData();
+  const intent = formData.get("intent") as string;
   const termIndex = parseInt(formData.get("termIndex") as string);
   const courseId = formData.get("courseId") as string;
 
-  try {
-    await supabase.from("enrollments").insert({
-      user_id: user.id,
-      course_id: courseId,
-      term_index: termIndex,
-      status: "enrolled",
-    });
+  if (intent === "cancel") {
+    const { error } = await supabase
+      .from("enrollments")
+      .update({ status: "cancelled" })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .eq("term_index", termIndex)
+      .eq("status", "enrolled");
 
-    return redirect("/moje-kurzy", { headers });
-  } catch (error: any) {
-    return json({ error: error.message }, { status: 400, headers });
+    if (error) {
+      return json({ error: error.message }, { status: 400, headers });
+    }
+  } else {
+    const { error } = await supabase
+      .from("enrollments")
+      .upsert(
+        {
+          user_id: user.id,
+          course_id: courseId,
+          term_index: termIndex,
+          status: "enrolled",
+          enrolled_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,course_id,term_index" }
+      );
+
+    if (error) {
+      return json({ error: error.message }, { status: 400, headers });
+    }
   }
+
+  return json({ success: true }, { headers });
+}
+
+function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isEnrolled }: {
+  courseId: string;
+  courseTitle: string;
+  termIndex: number;
+  dateStart: string;
+  location: string;
+  isEnrolled: boolean;
+}) {
+  const fetcher = useFetcher<{ error?: string; success?: boolean }>();
+  const [open, setOpen] = useState(false);
+  const isSubmitting = fetcher.state === "submitting";
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setOpen(false);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {isEnrolled ? (
+          <Button variant="outline" size="sm" className="w-full">
+            Odhlásit se
+          </Button>
+        ) : (
+          <Button variant="accent" size="sm" className="w-full">
+            Přihlásit se
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isEnrolled ? "Odhlásit se z kurzu" : "Přihlásit se na kurz"}</DialogTitle>
+          <DialogDescription>
+            {isEnrolled
+              ? "Opravdu se chcete odhlásit z tohoto termínu?"
+              : "Potvrzením se přihlásíte na vybraný termín kurzu"}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
+            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(dateStart), "d. MMMM yyyy", { locale: cs })}</span></p>
+            <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{location}</span></p>
+          </div>
+          {fetcher.data?.error && (
+            <p className="text-sm text-destructive">{fetcher.data.error}</p>
+          )}
+          <fetcher.Form method="post">
+            <input type="hidden" name="intent" value={isEnrolled ? "cancel" : "enroll"} />
+            <input type="hidden" name="courseId" value={courseId} />
+            <input type="hidden" name="termIndex" value={termIndex} />
+            <Button
+              type="submit"
+              variant={isEnrolled ? "destructive" : "accent"}
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? (isEnrolled ? "Odhlašuji..." : "Přihlašuji...")
+                : (isEnrolled ? "Potvrdit odhlášení" : "Potvrdit přihlášku")}
+            </Button>
+          </fetcher.Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function KurzDetail() {
-  const { course, courseImage, lecturerPhoto } = useLoaderData<typeof loader>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
+  const { course, courseImage, lecturerPhoto, enrolledTerms } = useLoaderData<typeof loader>();
+  const enrolledSet = new Set(enrolledTerms);
 
   if (course.is_external) {
     return (
@@ -282,11 +383,16 @@ export default function KurzDetail() {
               <SectionHeader icon={Calendar} title="Dostupné termíny" className="mb-4" />
               <div className="space-y-3">
                 {course.dates.map((date, idx) => (
-                  <div key={idx} className="p-4 rounded-lg border space-y-3">
+                  <div key={idx} className={`p-4 rounded-lg border space-y-3 ${enrolledSet.has(idx) ? "border-primary/30 bg-primary/5" : ""}`}>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
+                        </div>
+                        {enrolledSet.has(idx) && (
+                          <Badge variant="secondary" className="text-xs">Přihlášen</Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="w-4 h-4" />
@@ -302,41 +408,14 @@ export default function KurzDetail() {
                         <p className="text-sm text-muted-foreground italic">{date.note}</p>
                       )}
                     </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="accent" size="sm" className="w-full">
-                          Přihlásit se
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Přihlásit se na kurz</DialogTitle>
-                          <DialogDescription>
-                            Potvrzením se přihlásíte na vybraný termín kurzu
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{course.title}</span></p>
-                            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span></p>
-                            <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{date.location}</span></p>
-                          </div>
-                          <Form method="post">
-                            <input type="hidden" name="courseId" value={course._id} />
-                            <input type="hidden" name="termIndex" value={idx} />
-                            <Button
-                              type="submit"
-                              variant="accent"
-                              size="lg"
-                              className="w-full"
-                              disabled={isSubmitting}
-                            >
-                              {isSubmitting ? "Přihlašuji..." : "Potvrdit přihlášku"}
-                            </Button>
-                          </Form>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <TermAction
+                      courseId={course._id}
+                      courseTitle={course.title}
+                      termIndex={idx}
+                      dateStart={date.date_start}
+                      location={date.location}
+                      isEnrolled={enrolledSet.has(idx)}
+                    />
                   </div>
                 ))}
               </div>
