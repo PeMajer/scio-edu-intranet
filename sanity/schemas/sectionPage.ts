@@ -1,0 +1,54 @@
+export const sectionPage = {
+  name: 'sectionPage',
+  title: 'Stránka sekce',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Název sekce', type: 'string', validation: (Rule: any) => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' }, validation: (Rule: any) => Rule.required() },
+    { name: 'intro_text', title: 'Úvodní text', type: 'blockContent' },
+    {
+      name: 'section_key',
+      title: 'Klíč sekce',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Nováček', value: 'novacek' },
+          { title: 'Růst', value: 'rust' },
+          { title: 'Týmy', value: 'tymy' },
+          { title: 'Cesty', value: 'cesty' },
+          { title: 'Koncepce', value: 'koncepce' },
+        ],
+      },
+    },
+    {
+      name: 'resources',
+      title: 'Materiály a odkazy',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'label', title: 'Název', type: 'string' },
+            { name: 'url', title: 'Odkaz', type: 'url' },
+            {
+              name: 'type',
+              title: 'Typ',
+              type: 'string',
+              options: {
+                list: [
+                  { title: 'Google Drive', value: 'google-drive' },
+                  { title: 'Externí web', value: 'external-web' },
+                  { title: 'Interní odkaz', value: 'internal-link' },
+                  { title: 'Podcast', value: 'podcast' },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      description: 'Odkazy na Google Drive dokumenty, podcasty, externí weby apod.',
+    },
+    { name: 'is_visible', title: 'Viditelná', type: 'boolean', initialValue: true },
+    { name: 'order', title: 'Pořadí', type: 'number', initialValue: 0 },
+  ],
+};

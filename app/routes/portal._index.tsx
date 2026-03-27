@@ -1,9 +1,14 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import { format, parseISO } from "date-fns";
+import { cs } from "date-fns/locale";
 import { requireAuth } from "~/lib/supabase.server";
+import { fetchCalendarEvents } from "~/lib/google-calendar.server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { BookOpen, FileText, Calendar, ArrowRight } from "lucide-react";
+import { BookOpen, FileText, Calendar, ArrowRight, Clock } from "lucide-react";
+import type { CalendarEvent } from "~/lib/types";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
@@ -14,11 +19,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .eq("id", user.id)
     .single();
 
-  return json({ user, profile }, { headers });
+  const env = context.env as Record<string, string>;
+  let upcomingEvents: CalendarEvent[] = [];
+  try {
+    const events = await fetchCalendarEvents(
+      env.GOOGLE_CALENDAR_ID,
+      env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    );
+    upcomingEvents = events.slice(0, 3);
+  } catch {
+    // Selhání kalendáře nesmí rozbít dashboard
+  }
+
+  return json({ user, profile, upcomingEvents }, { headers });
 }
 
 export default function Portal() {
-  const { profile } = useLoaderData<typeof loader>();
+  const { profile, upcomingEvents } = useLoaderData<typeof loader>();
 
   return (
     <div className="min-h-screen bg-[#F5F7F8]">
@@ -115,14 +133,35 @@ export default function Portal() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <p className="text-[#687A7C] mb-4">
-                Zobrazení kalendáře událostí bude brzy k dispozici
-              </p>
-              <Button variant="outline" asChild>
-                <a href="/kalendar">Zobrazit celý kalendář</a>
-              </Button>
-            </div>
+            {upcomingEvents.length === 0 ? (
+              <p className="text-[#687A7C] text-sm py-4">Žádné nadcházející události.</p>
+            ) : (
+              <div className="space-y-2 mb-4">
+                {(upcomingEvents as CalendarEvent[]).map((event) => {
+                  const start = parseISO(event.start.dateTime ?? event.start.date ?? "");
+                  const isAllDay = !event.start.dateTime;
+                  return (
+                    <div key={event.id} className="flex items-start gap-3 py-2 border-b last:border-0">
+                      <Badge variant="secondary" className="flex-shrink-0 mt-0.5">
+                        {format(start, "d. MMM", { locale: cs })}
+                      </Badge>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{event.summary}</p>
+                        {!isAllDay && (
+                          <p className="text-xs text-[#687A7C] flex items-center gap-1 mt-0.5">
+                            <Clock className="w-3 h-3" />
+                            {format(start, "H:mm", { locale: cs })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <Button variant="outline" asChild className="w-full">
+              <a href="/kalendar">Zobrazit celý kalendář</a>
+            </Button>
           </CardContent>
         </Card>
       </div>
