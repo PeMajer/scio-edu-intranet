@@ -77,4 +77,11 @@ Commit messages in English, concise.
 1. Find ALL places that depend on what you changed.
 2. Run `npm run lint` and `npm run build` — both must pass.
 3. Review the full git diff before declaring done.
-4. Ask yourself: **"Would an experienced developer approve this?"** If not, fix it.
+4. **Update `doc/`** if the change affects any of:
+   - Architecture, stack, or infrastructure (`doc/architecture.md`)
+   - Code conventions or patterns (`doc/conventions.md`)
+   - Routes, pages, or navigation structure (`doc/project-plan.md`)
+   - UI/UX, design system, or components (`doc/architecture.md` — design systém)
+   - Testing or build pipeline (`doc/testing.md`)
+   - Setup, env variables, or external services (`doc/setup.md`)
+5. Ask yourself: **"Would an experienced developer approve this?"** If not, fix it.
