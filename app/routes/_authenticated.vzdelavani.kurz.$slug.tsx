@@ -1,8 +1,9 @@
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData, Form, useNavigation, Link } from "@remix-run/react";
+import { useState, useEffect } from "react";
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
+import { useLoaderData, useFetcher, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -15,14 +16,15 @@ import {
   DialogTrigger
 } from "~/components/ui/dialog";
 import { PageHeader } from "~/components/layout/page-header";
-import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag } from "lucide-react";
+import { SectionHeader } from "~/components/layout/section-header";
+import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag, Info } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { user, headers } = await requireAuth(request, context);
+  const { user, supabase, headers } = await requireAuth(request, context);
 
   const sanity = createSanityClient(context);
   const course = await sanity.fetch<Course>(
@@ -41,34 +43,134 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const courseImage = course.image ? imageBuilder.image(course.image).width(800).url() : null;
   const lecturerPhoto = course.lecturer?.photo ? imageBuilder.image(course.lecturer.photo).width(200).url() : null;
 
-  return json({ course, courseImage, lecturerPhoto, userId: user.id }, { headers });
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("course_id", course._id)
+    .eq("status", "enrolled");
+
+  const enrolledTerms = new Set((enrollments || []).map((e: { term_index: number }) => e.term_index));
+
+  return json({ course, courseImage, lecturerPhoto, userId: user.id, enrolledTerms: [...enrolledTerms] }, { headers });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
 
   const formData = await request.formData();
+  const intent = formData.get("intent") as string;
   const termIndex = parseInt(formData.get("termIndex") as string);
   const courseId = formData.get("courseId") as string;
 
-  try {
-    await supabase.from("enrollments").insert({
-      user_id: user.id,
-      course_id: courseId,
-      term_index: termIndex,
-      status: "enrolled",
-    });
+  if (intent === "cancel") {
+    const { error } = await supabase
+      .from("enrollments")
+      .update({ status: "cancelled" })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .eq("term_index", termIndex)
+      .eq("status", "enrolled");
 
-    return redirect("/moje-kurzy", { headers });
-  } catch (error: any) {
-    return json({ error: error.message }, { status: 400, headers });
+    if (error) {
+      return json({ error: error.message }, { status: 400, headers });
+    }
+  } else {
+    const { error } = await supabase
+      .from("enrollments")
+      .upsert(
+        {
+          user_id: user.id,
+          course_id: courseId,
+          term_index: termIndex,
+          status: "enrolled",
+          enrolled_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,course_id,term_index" }
+      );
+
+    if (error) {
+      return json({ error: error.message }, { status: 400, headers });
+    }
   }
+
+  return json({ success: true }, { headers });
+}
+
+function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isEnrolled }: {
+  courseId: string;
+  courseTitle: string;
+  termIndex: number;
+  dateStart: string;
+  location: string;
+  isEnrolled: boolean;
+}) {
+  const fetcher = useFetcher<{ error?: string; success?: boolean }>();
+  const [open, setOpen] = useState(false);
+  const isSubmitting = fetcher.state === "submitting";
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setOpen(false);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {isEnrolled ? (
+          <Button variant="outline" size="sm" className="w-full">
+            Odhlásit se
+          </Button>
+        ) : (
+          <Button variant="accent" size="sm" className="w-full">
+            Přihlásit se
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isEnrolled ? "Odhlásit se z kurzu" : "Přihlásit se na kurz"}</DialogTitle>
+          <DialogDescription>
+            {isEnrolled
+              ? "Opravdu se chcete odhlásit z tohoto termínu?"
+              : "Potvrzením se přihlásíte na vybraný termín kurzu"}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
+            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(dateStart), "d. MMMM yyyy", { locale: cs })}</span></p>
+            <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{location}</span></p>
+          </div>
+          {fetcher.data?.error && (
+            <p className="text-sm text-destructive">{fetcher.data.error}</p>
+          )}
+          <fetcher.Form method="post">
+            <input type="hidden" name="intent" value={isEnrolled ? "cancel" : "enroll"} />
+            <input type="hidden" name="courseId" value={courseId} />
+            <input type="hidden" name="termIndex" value={termIndex} />
+            <Button
+              type="submit"
+              variant={isEnrolled ? "destructive" : "accent"}
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? (isEnrolled ? "Odhlašuji..." : "Přihlašuji...")
+                : (isEnrolled ? "Potvrdit odhlášení" : "Potvrdit přihlášku")}
+            </Button>
+          </fetcher.Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function KurzDetail() {
-  const { course, courseImage, lecturerPhoto } = useLoaderData<typeof loader>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
+  const { course, courseImage, lecturerPhoto, enrolledTerms } = useLoaderData<typeof loader>();
+  const enrolledSet = new Set(enrolledTerms);
 
   if (course.is_external) {
     return (
@@ -255,105 +357,88 @@ export default function KurzDetail() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Informace o kurzu</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {course.duration_minutes && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Clock className="w-5 h-5 text-muted-foreground" />
-                  <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
-                </div>
-              )}
-              {course.price !== undefined && (
-                <div className="text-2xl font-bold text-primary">
-                  {course.price === 0 ? "Zdarma" : `${course.price} Kč`}
-                </div>
-              )}
-            </CardContent>
+            <div className="p-5">
+              <SectionHeader icon={Info} title="Informace o kurzu" className="mb-4" />
+              <div className="space-y-3">
+                {course.duration_minutes && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
+                  </div>
+                )}
+                {course.price !== undefined && (
+                  <div className="text-2xl font-bold text-primary">
+                    {Number(course.price) === 0 || String(course.price).toLowerCase() === "zdarma"
+                      ? "Zdarma"
+                      : `${course.price} Kč`}
+                  </div>
+                )}
+              </div>
+            </div>
           </Card>
 
           {course.dates && course.dates.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle>Dostupné termíny</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <div className="p-5">
+              <SectionHeader icon={Calendar} title="Dostupné termíny" className="mb-4" />
+              <div className="space-y-3">
                 {course.dates.map((date, idx) => (
-                  <Dialog key={idx}>
-                    <DialogTrigger asChild>
-                      <button className="w-full text-left p-4 rounded-lg border hover:border-primary hover:bg-accent/10 transition-all">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{date.location}</span>
-                          </div>
-                          {date.capacity && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span>Kapacita: {date.capacity}</span>
-                            </div>
-                          )}
+                  <div key={idx} className={`p-4 rounded-lg border space-y-3 ${enrolledSet.has(idx) ? "border-primary/30 bg-primary/5" : ""}`}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
                         </div>
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Přihlásit se na kurz</DialogTitle>
-                        <DialogDescription>
-                          Potvrzením se přihlásíte na vybraný termín kurzu
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-muted rounded-lg space-y-2">
-                          <p className="font-semibold">{course.title}</p>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Termín: {format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</p>
-                            <p>Místo: {date.location}</p>
-                            {date.note && <p className="italic">{date.note}</p>}
-                          </div>
-                        </div>
-                        <Form method="post">
-                          <input type="hidden" name="courseId" value={course._id} />
-                          <input type="hidden" name="termIndex" value={idx} />
-                          <Button
-                            type="submit"
-                            variant="accent"
-                            size="lg"
-                            className="w-full"
-                            disabled={isSubmitting}
-                          >
-                            {isSubmitting ? "Přihlašuji..." : "Potvrdit přihlášku"}
-                          </Button>
-                        </Form>
+                        {enrolledSet.has(idx) && (
+                          <Badge variant="secondary" className="text-xs">Přihlášen</Badge>
+                        )}
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{date.location}</span>
+                      </div>
+                      {date.capacity && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>Kapacita: {date.capacity}</span>
+                        </div>
+                      )}
+                      {date.note && (
+                        <p className="text-sm text-muted-foreground italic">{date.note}</p>
+                      )}
+                    </div>
+                    <TermAction
+                      courseId={course._id}
+                      courseTitle={course.title}
+                      termIndex={idx}
+                      dateStart={date.date_start}
+                      location={date.location}
+                      isEnrolled={enrolledSet.has(idx)}
+                    />
+                  </div>
                 ))}
-              </CardContent>
+              </div>
+              </div>
             </Card>
           )}
 
           {(course.contact_name || course.contact_email) && (
             <Card>
-              <CardHeader>
-                <CardTitle>Kontakt</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {course.contact_name && (
-                  <p className="font-semibold">{course.contact_name}</p>
-                )}
-                {course.contact_email && (
-                  <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
-                    <Mail className="w-4 h-4" />
-                    {course.contact_email}
-                  </a>
-                )}
-              </CardContent>
+              <div className="p-5">
+                <SectionHeader icon={Mail} title="Kontakt" className="mb-4" />
+                <div className="space-y-2">
+                  {course.contact_name && (
+                    <p className="font-semibold text-sm">{course.contact_name}</p>
+                  )}
+                  {course.contact_email && (
+                    <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
+                      <Mail className="w-4 h-4" />
+                      {course.contact_email}
+                    </a>
+                  )}
+                </div>
+              </div>
             </Card>
           )}
         </div>
