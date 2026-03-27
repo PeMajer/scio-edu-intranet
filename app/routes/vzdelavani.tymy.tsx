@@ -5,22 +5,35 @@ import { createSanityClient } from "~/lib/sanity.server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Users, BookOpen } from "lucide-react";
+import { Users, BookOpen, ExternalLink } from "lucide-react";
+import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
+
+type Resource = { label: string; url: string; type?: string };
+type SectionPage = { intro_text?: any[]; resources?: Resource[] };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
 
   const sanity = createSanityClient(context);
-  const courses = await sanity.fetch<Course[]>(
-    `*[_type == "course" && section == "tymy" && is_published == true] | order(_createdAt desc)`
-  );
+  const [courses, sectionPage] = await Promise.all([
+    sanity.fetch<Course[]>(
+      `*[_type == "course" && section == "tymy" && is_published == true] | order(_createdAt desc)`
+    ),
+    sanity.fetch<SectionPage | null>(
+      `*[_type == "sectionPage" && section_key == "tymy" && is_visible == true][0]{ intro_text, resources }`
+    ),
+  ]);
 
-  return json({ courses }, { headers });
+  return json({
+    courses,
+    introText: sectionPage?.intro_text ?? null,
+    resources: sectionPage?.resources ?? [],
+  }, { headers });
 }
 
 export default function VzdelavaniTymy() {
-  const { courses } = useLoaderData<typeof loader>();
+  const { courses, introText, resources } = useLoaderData<typeof loader>();
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -31,6 +44,11 @@ export default function VzdelavaniTymy() {
         <p className="text-lg text-[#687A7C]">
           Specializované programy pro týmovou spolupráci a rozvoj kvadriád
         </p>
+        {introText && (
+          <div className="prose prose-gray max-w-none mt-4">
+            <PortableText value={introText} />
+          </div>
+        )}
       </div>
 
       <Card>
@@ -91,6 +109,31 @@ export default function VzdelavaniTymy() {
           )}
         </CardContent>
       </Card>
+
+      {resources.length > 0 && (
+        <Card className="bg-[#BADEDF]/20 mt-6">
+          <CardHeader>
+            <CardTitle>Materiály a odkazy</CardTitle>
+            <CardDescription>Další zdroje pro týmový rozvoj</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {resources.map((resource, i) => (
+                <a
+                  key={i}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[#1DA2AC] hover:underline"
+                >
+                  <ExternalLink className="w-4 h-4 shrink-0" />
+                  {resource.label}
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

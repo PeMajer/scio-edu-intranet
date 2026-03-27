@@ -433,14 +433,19 @@ Otevři prohlížeč na **http://localhost:3000** — měla by se zobrazit přih
 
 ### 🟢 Krok 13 — Vlož první obsah do Sanity Studia
 
-**Spusť Sanity Studio lokálně:**
+**Inicializuj a spusť Sanity Studio lokálně:**
 
 ```bash
-# V kořenovém adresáři projektu (nebo v podadresáři sanity/, záleží na struktuře od agenta)
+# 1. Inicializace (jednou) — vytvoří podadresář scioedu/ s konfigurací Studia
+npx sanity init
+# Vyber existující projekt ScioEdu, dataset "production", Clean template, TypeScript, npm
+
+# 2. Spuštění dev serveru
+cd scioedu
 npx sanity dev
 ```
 
-Otevře se na **http://localhost:3333**. Přihlas se svým Sanity účtem (stejný, s kterým jsi založil projekt v kroku 4).
+Otevře se na **http://localhost:3333**. Při prvním spuštění přidej localhost jako development host (klikni "Add development host" → Save). Přihlas se svým Sanity účtem (stejný, s kterým jsi založil projekt v kroku 4).
 
 > ⏱️ Prvních 5–10 minut věnuj orientaci v rozhraní. Vlevo uvidíš typy dokumentů: Kurz, Lektor, Stránka sekce.
 

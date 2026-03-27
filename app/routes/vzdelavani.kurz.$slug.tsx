@@ -14,9 +14,10 @@ import {
   DialogTitle,
   DialogTrigger
 } from "~/components/ui/dialog";
-import { Calendar, MapPin, Users, Clock, ExternalLink, Mail } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
+import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
@@ -80,12 +81,25 @@ export default function KurzDetail() {
                 {course.highlight && (
                   <p className="text-lg text-[#687A7C]">{course.highlight}</p>
                 )}
+                {course.tags && course.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {course.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary">{tag}</Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {courseImage && (
               <img src={courseImage} alt={course.title} className="w-full h-64 object-cover rounded-lg" />
+            )}
+
+            {course.description && course.description.length > 0 && (
+              <div className="prose prose-gray max-w-none">
+                <PortableText value={course.description} />
+              </div>
             )}
 
             {course.target_audience && (
@@ -138,10 +152,23 @@ export default function KurzDetail() {
               {course.highlight && (
                 <p className="text-lg text-[#687A7C]">{course.highlight}</p>
               )}
+              {course.tags && course.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {course.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary">{tag}</Badge>
+                  ))}
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               {courseImage && (
                 <img src={courseImage} alt={course.title} className="w-full h-80 object-cover rounded-lg" />
+              )}
+
+              {course.description && course.description.length > 0 && (
+                <div className="prose prose-gray max-w-none">
+                  <PortableText value={course.description} />
+                </div>
               )}
 
               {course.target_audience && (
