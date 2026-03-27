@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { createSupabaseServerClient } from "~/lib/supabase.server";
 import { LogIn, BookOpen, Calendar, Users, FileText } from "lucide-react";
+import { Logo } from "~/components/logo";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
@@ -67,21 +68,16 @@ export default function Index() {
   const loaderData = useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-screen bg-[#F5F7F8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#1DA2AC] flex items-center justify-center">
-              <div className="text-white text-2xl font-bold">∞</div>
-            </div>
-            <h1 className="text-4xl font-bold text-[#1DA2AC]">ScioEdu</h1>
-          </div>
+          <Logo size="lg" variant="color" />
 
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-foreground">
               Interní portál pro vzdělávání ScioPolis
             </h2>
-            <p className="text-lg text-[#687A7C]">
+            <p className="text-lg text-muted-foreground">
               Vítejte na vzdělávací platformě pro zaměstnance ScioPolis.
               Přihlaste se pomocí vašeho firemního Google účtu a získejte přístup k:
             </p>
@@ -89,42 +85,42 @@ export default function Index() {
 
           <div className="grid gap-4">
             <div className="flex items-start gap-3">
-              <div className="mt-1 w-8 h-8 rounded-lg bg-[#BADEDF] flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-5 h-5 text-[#1DA2AC]" />
+              <div className="mt-1 w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Vzdělávací kurzy</h3>
-                <p className="text-sm text-[#687A7C]">Rozsáhlá nabídka kurzů pro nováčky i pokročilé průvodce</p>
+                <h3 className="font-semibold text-foreground">Vzdělávací kurzy</h3>
+                <p className="text-sm text-muted-foreground">Rozsáhlá nabídka kurzů pro nováčky i pokročilé průvodce</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="mt-1 w-8 h-8 rounded-lg bg-[#BADEDF] flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-5 h-5 text-[#1DA2AC]" />
+              <div className="mt-1 w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Kalendář akcí</h3>
-                <p className="text-sm text-[#687A7C]">Přehled nadcházejících školení a vzdělávacích aktivit</p>
+                <h3 className="font-semibold text-foreground">Kalendář akcí</h3>
+                <p className="text-sm text-muted-foreground">Přehled nadcházejících školení a vzdělávacích aktivit</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="mt-1 w-8 h-8 rounded-lg bg-[#BADEDF] flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-[#1DA2AC]" />
+              <div className="mt-1 w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Rozvoj týmů</h3>
-                <p className="text-sm text-[#687A7C]">Specializované programy pro týmy a kvadriády</p>
+                <h3 className="font-semibold text-foreground">Rozvoj týmů</h3>
+                <p className="text-sm text-muted-foreground">Specializované programy pro týmy a kvadriády</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="mt-1 w-8 h-8 rounded-lg bg-[#BADEDF] flex items-center justify-center flex-shrink-0">
-                <FileText className="w-5 h-5 text-[#1DA2AC]" />
+              <div className="mt-1 w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Koncepční materiály</h3>
-                <p className="text-sm text-[#687A7C]">Metodické balíky, dokumenty a podcasty</p>
+                <h3 className="font-semibold text-foreground">Koncepční materiály</h3>
+                <p className="text-sm text-muted-foreground">Metodické balíky, dokumenty a podcasty</p>
               </div>
             </div>
           </div>
@@ -139,7 +135,7 @@ export default function Index() {
           </CardHeader>
           <CardContent className="space-y-4">
             {actionData?.error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                 {actionData.error}
               </div>
             )}
@@ -165,7 +161,7 @@ export default function Index() {
             </Form>
 
             <div className="pt-4 border-t">
-              <p className="text-xs text-center text-[#687A7C]">
+              <p className="text-xs text-center text-muted-foreground">
                 Přístup je povolen pouze zaměstnancům ScioPolis s emailovou adresou @scioskola.cz
               </p>
             </div>

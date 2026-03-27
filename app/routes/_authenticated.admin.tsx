@@ -3,6 +3,7 @@ import { useLoaderData } from "@remix-run/react";
 import { requireAdmin } from "~/lib/supabase.server";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import { PageHeader } from "~/components/layout/page-header";
 import type { EnrollmentWithProfile } from "~/lib/types";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -35,13 +36,11 @@ export default function Admin() {
   const { enrollments } = useLoaderData<typeof loader>();
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Administrace</h1>
-        <p className="text-lg text-[#687A7C]">
-          Přehled všech přihlášek ({enrollments.length})
-        </p>
-      </div>
+    <>
+      <PageHeader
+        title="Administrace"
+        description={`Přehled všech přihlášek (${enrollments.length})`}
+      />
 
       <Card>
         <CardHeader>
@@ -62,9 +61,9 @@ export default function Admin() {
               </thead>
               <tbody>
                 {enrollments.map((enrollment: any) => (
-                  <tr key={enrollment.id} className="border-b last:border-0 hover:bg-[#F5F7F8]">
+                  <tr key={enrollment.id} className="border-b last:border-0 hover:bg-muted">
                     <td className="py-3 px-4 text-sm">{enrollment.profile?.full_name || 'N/A'}</td>
-                    <td className="py-3 px-4 text-sm text-[#687A7C]">{enrollment.profile?.id || 'N/A'}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">{enrollment.profile?.id || 'N/A'}</td>
                     <td className="py-3 px-4 text-sm font-mono text-xs">{enrollment.course_id}</td>
                     <td className="py-3 px-4 text-sm">#{enrollment.term_index + 1}</td>
                     <td className="py-3 px-4 text-sm">{new Date(enrollment.enrolled_at).toLocaleDateString("cs-CZ")}</td>
@@ -77,7 +76,7 @@ export default function Admin() {
                 ))}
                 {enrollments.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-[#687A7C]">
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
                       Zatím nejsou žádné přihlášky
                     </td>
                   </tr>
@@ -87,6 +86,6 @@ export default function Admin() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

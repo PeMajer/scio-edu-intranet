@@ -2,6 +2,7 @@ import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient } from "~/lib/sanity.server";
+import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -60,20 +61,21 @@ export default function VzdelavaniRust() {
   const { subsections, introText, resources } = useLoaderData<typeof loader>();
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Vzdělávání a růst pro každého
-        </h1>
-        <p className="text-lg text-[#687A7C]">
-          Kurzy zaměřené na osobní rozvoj a odborné dovednosti
-        </p>
-        {introText && (
-          <div className="prose prose-gray max-w-none mt-4">
-            <PortableText value={introText} />
-          </div>
-        )}
-      </div>
+    <>
+      <PageHeader
+        title="Vzdělávání a růst pro každého"
+        description="Kurzy zaměřené na osobní rozvoj a odborné dovednosti"
+        breadcrumbs={[
+          { label: "Vzdělávání", href: "/vzdelavani" },
+          { label: "Osobní růst" },
+        ]}
+      />
+
+      {introText && (
+        <div className="prose prose-gray max-w-none mb-8">
+          <PortableText value={introText} />
+        </div>
+      )}
 
       <div className="space-y-8">
         {Object.entries(subsectionConfig).map(([key, config]) => {
@@ -84,8 +86,8 @@ export default function VzdelavaniRust() {
             <Card key={key}>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#BADEDF] flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-[#1DA2AC]" />
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle>{config.title}</CardTitle>
@@ -95,7 +97,7 @@ export default function VzdelavaniRust() {
               </CardHeader>
               <CardContent>
                 {courses.length === 0 ? (
-                  <div className="text-center py-6 text-[#687A7C]">
+                  <div className="text-center py-6 text-muted-foreground">
                     <p>Momentálně nejsou k dispozici žádné kurzy</p>
                   </div>
                 ) : (
@@ -117,7 +119,7 @@ export default function VzdelavaniRust() {
                         </CardHeader>
                         <CardContent>
                           <div className="flex items-center justify-between">
-                            <div className="text-sm text-[#687A7C]">
+                            <div className="text-sm text-muted-foreground">
                               {course.price ? `${course.price} Kč` : "Zdarma"}
                             </div>
                             <Button variant="accent" size="sm" asChild>
@@ -137,7 +139,7 @@ export default function VzdelavaniRust() {
         })}
 
         {resources.length > 0 && (
-          <Card className="bg-[#BADEDF]/20">
+          <Card className="bg-accent/20">
             <CardHeader>
               <CardTitle>Materiály a odkazy</CardTitle>
               <CardDescription>Další zdroje pro váš rozvoj</CardDescription>
@@ -150,7 +152,7 @@ export default function VzdelavaniRust() {
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-[#1DA2AC] hover:underline"
+                    className="flex items-center gap-2 text-primary hover:underline"
                   >
                     <ExternalLink className="w-4 h-4 shrink-0" />
                     {resource.label}
@@ -161,6 +163,6 @@ export default function VzdelavaniRust() {
           </Card>
         )}
       </div>
-    </div>
+    </>
   );
 }

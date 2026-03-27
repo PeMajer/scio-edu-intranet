@@ -2,6 +2,7 @@ import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient } from "~/lib/sanity.server";
+import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -36,25 +37,26 @@ export default function VzdelavaniTymy() {
   const { courses, introText, resources } = useLoaderData<typeof loader>();
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Rozvoj pro týmy a kvadriády
-        </h1>
-        <p className="text-lg text-[#687A7C]">
-          Specializované programy pro týmovou spolupráci a rozvoj kvadriád
-        </p>
-        {introText && (
-          <div className="prose prose-gray max-w-none mt-4">
-            <PortableText value={introText} />
-          </div>
-        )}
-      </div>
+    <>
+      <PageHeader
+        title="Rozvoj pro týmy a kvadriády"
+        description="Specializované programy pro týmovou spolupráci a rozvoj kvadriád"
+        breadcrumbs={[
+          { label: "Vzdělávání", href: "/vzdelavani" },
+          { label: "Týmy" },
+        ]}
+      />
+
+      {introText && (
+        <div className="prose prose-gray max-w-none mb-8">
+          <PortableText value={introText} />
+        </div>
+      )}
 
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-[#687A7C] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -67,7 +69,7 @@ export default function VzdelavaniTymy() {
         </CardHeader>
         <CardContent>
           {courses.length === 0 ? (
-            <div className="text-center py-12 text-[#687A7C]">
+            <div className="text-center py-12 text-muted-foreground">
               <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p className="mb-2">Momentálně nejsou k dispozici žádné kurzy</p>
               <p className="text-sm">Brzy přidáme nové týmové programy</p>
@@ -92,7 +94,7 @@ export default function VzdelavaniTymy() {
                   <CardContent>
                     <div className="space-y-3">
                       {course.price && (
-                        <div className="text-sm text-[#687A7C]">
+                        <div className="text-sm text-muted-foreground">
                           Cena: <span className="font-semibold">{course.price} Kč</span>
                         </div>
                       )}
@@ -111,7 +113,7 @@ export default function VzdelavaniTymy() {
       </Card>
 
       {resources.length > 0 && (
-        <Card className="bg-[#BADEDF]/20 mt-6">
+        <Card className="bg-accent/20 mt-6">
           <CardHeader>
             <CardTitle>Materiály a odkazy</CardTitle>
             <CardDescription>Další zdroje pro týmový rozvoj</CardDescription>
@@ -124,7 +126,7 @@ export default function VzdelavaniTymy() {
                   href={resource.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[#1DA2AC] hover:underline"
+                  className="flex items-center gap-2 text-primary hover:underline"
                 >
                   <ExternalLink className="w-4 h-4 shrink-0" />
                   {resource.label}
@@ -134,6 +136,6 @@ export default function VzdelavaniTymy() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </>
   );
 }

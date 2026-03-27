@@ -1,7 +1,8 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { requireAuth } from "~/lib/supabase.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { PageHeader } from "~/components/layout/page-header";
 import { FileText, Headphones, BookOpen, ExternalLink } from "lucide-react";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -44,20 +45,15 @@ const iconMap = {
 
 export default function Koncepce() {
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Koncepce</h1>
-        <p className="text-lg text-[#687A7C]">
-          Metodické balíky, koncepční dokumenty a podcasty
-        </p>
-      </div>
+    <>
+      <PageHeader title="Koncepce" description="Metodické balíky, koncepční dokumenty a podcasty" />
 
-      <Card className="mb-8 bg-[#BADEDF]/20 border-[#1DA2AC]">
+      <Card className="mb-8 bg-accent/20 border-primary">
         <CardContent className="pt-6">
-          <p className="text-[#687A7C] mb-2">
+          <p className="text-muted-foreground mb-2">
             Sekce se připravuje — ale už teď tu najdete užitečné zdroje pro vaši práci.
           </p>
-          <p className="text-sm text-[#687A7C]">
+          <p className="text-sm text-muted-foreground">
             Postupně budeme přidávat další materiály a dokumenty.
           </p>
         </CardContent>
@@ -70,8 +66,8 @@ export default function Koncepce() {
             <Card key={category.type}>
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-[#BADEDF] flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-[#1DA2AC]" />
+                  <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <CardTitle className="text-xl">{category.title}</CardTitle>
                 </div>
@@ -97,6 +93,6 @@ export default function Koncepce() {
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

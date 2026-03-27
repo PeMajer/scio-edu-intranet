@@ -23,6 +23,7 @@ import { fetchCalendarEvents } from "~/lib/google-calendar.server";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { PageHeader } from "~/components/layout/page-header";
 import { cn } from "~/lib/cn";
 import type { CalendarEvent } from "~/lib/types";
 
@@ -67,8 +68,8 @@ function EventRow({ event }: { event: CalendarEvent }) {
           </Badge>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 truncate">{event.summary}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-[#687A7C]">
+          <p className="font-semibold text-foreground truncate">{event.summary}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
             {!isAllDay(event) && (
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
@@ -87,7 +88,7 @@ function EventRow({ event }: { event: CalendarEvent }) {
           href={event.htmlLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 text-[#687A7C] hover:text-[#1DA2AC] transition-colors"
+          className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors"
           title="Otevřít v Google Kalendáři"
         >
           <ExternalLink className="w-4 h-4" />
@@ -132,11 +133,8 @@ export default function Kalendar() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Kalendář</h1>
-        <p className="text-lg text-[#687A7C]">Nadcházející školení a vzdělávací události</p>
-      </div>
+    <>
+      <PageHeader title="Kalendář" description="Přehled vzdělávacích akcí a školení" />
 
       {calendarError && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -167,7 +165,7 @@ export default function Kalendar() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 text-center text-xs font-medium text-[#687A7C] mb-1">
+          <div className="grid grid-cols-7 text-center text-xs font-medium text-muted-foreground mb-1">
             {DAY_HEADERS.map((d) => (
               <div key={d} className="py-1">
                 {d}
@@ -187,15 +185,15 @@ export default function Kalendar() {
                   className={cn(
                     "min-h-[80px] rounded-md p-1 flex flex-col",
                     outsideMonth && "opacity-30",
-                    isToday(day) && "ring-2 ring-[#1DA2AC] bg-[#1DA2AC]/10",
-                    isSelected && "bg-[#1DA2AC]/20 ring-2 ring-[#1DA2AC]",
-                    hasEvents && !outsideMonth && "cursor-pointer hover:bg-[#1DA2AC]/10 transition-colors"
+                    isToday(day) && "ring-2 ring-ring bg-primary/10",
+                    isSelected && "bg-primary/20 ring-2 ring-ring",
+                    hasEvents && !outsideMonth && "cursor-pointer hover:bg-primary/10 transition-colors"
                   )}
                 >
                   <span
                     className={cn(
                       "text-xs font-medium self-end mb-1",
-                      isToday(day) || isSelected ? "text-[#1DA2AC]" : "text-gray-700"
+                      isToday(day) || isSelected ? "text-primary" : "text-muted-foreground"
                     )}
                   >
                     {format(day, "d")}
@@ -204,14 +202,14 @@ export default function Kalendar() {
                     {dayEvents.slice(0, 2).map((e) => (
                       <span
                         key={e.id}
-                        className="block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium bg-[#1DA2AC]/15 text-[#1DA2AC]"
+                        className="block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium bg-primary/15 text-primary"
                         title={e.summary}
                       >
                         {e.summary}
                       </span>
                     ))}
                     {dayEvents.length > 2 && (
-                      <span className="text-[9px] text-[#687A7C] pl-1">+{dayEvents.length - 2}</span>
+                      <span className="text-[9px] text-muted-foreground pl-1">+{dayEvents.length - 2}</span>
                     )}
                   </div>
                 </div>
@@ -222,7 +220,7 @@ export default function Kalendar() {
           {selectedDay && selectedDayEvents.length > 0 && (
             <div className="mt-4 border-t pt-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-sm font-semibold text-foreground">
                   {format(selectedDay, "EEEE d. MMMM", { locale: cs })}
                 </h3>
                 <Button
@@ -245,9 +243,9 @@ export default function Kalendar() {
       </Card>
 
       <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Nadcházející události</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Nadcházející události</h2>
         {upcomingEvents.length === 0 && !calendarError ? (
-          <p className="text-[#687A7C]">Žádné nadcházející události.</p>
+          <p className="text-muted-foreground">Žádné nadcházející události.</p>
         ) : (
           <div className="space-y-3">
             {upcomingEvents.map((event) => (
@@ -256,6 +254,6 @@ export default function Kalendar() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
