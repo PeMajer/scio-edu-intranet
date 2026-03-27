@@ -2,7 +2,7 @@ import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from
 import { useLoaderData, Form, useNavigation, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -15,7 +15,8 @@ import {
   DialogTrigger
 } from "~/components/ui/dialog";
 import { PageHeader } from "~/components/layout/page-header";
-import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag } from "lucide-react";
+import { SectionHeader } from "~/components/layout/section-header";
+import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag, Info } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { PortableText } from "@portabletext/react";
@@ -255,105 +256,110 @@ export default function KurzDetail() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Informace o kurzu</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {course.duration_minutes && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Clock className="w-5 h-5 text-muted-foreground" />
-                  <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
-                </div>
-              )}
-              {course.price !== undefined && (
-                <div className="text-2xl font-bold text-primary">
-                  {course.price === 0 ? "Zdarma" : `${course.price} Kč`}
-                </div>
-              )}
-            </CardContent>
+            <div className="p-5">
+              <SectionHeader icon={Info} title="Informace o kurzu" className="mb-4" />
+              <div className="space-y-3">
+                {course.duration_minutes && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
+                  </div>
+                )}
+                {course.price !== undefined && (
+                  <div className="text-2xl font-bold text-primary">
+                    {Number(course.price) === 0 || String(course.price).toLowerCase() === "zdarma"
+                      ? "Zdarma"
+                      : `${course.price} Kč`}
+                  </div>
+                )}
+              </div>
+            </div>
           </Card>
 
           {course.dates && course.dates.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle>Dostupné termíny</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <div className="p-5">
+              <SectionHeader icon={Calendar} title="Dostupné termíny" className="mb-4" />
+              <div className="space-y-3">
                 {course.dates.map((date, idx) => (
-                  <Dialog key={idx}>
-                    <DialogTrigger asChild>
-                      <button className="w-full text-left p-4 rounded-lg border hover:border-primary hover:bg-accent/10 transition-all">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{date.location}</span>
-                          </div>
-                          {date.capacity && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span>Kapacita: {date.capacity}</span>
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Přihlásit se na kurz</DialogTitle>
-                        <DialogDescription>
-                          Potvrzením se přihlásíte na vybraný termín kurzu
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-muted rounded-lg space-y-2">
-                          <p className="font-semibold">{course.title}</p>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Termín: {format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</p>
-                            <p>Místo: {date.location}</p>
-                            {date.note && <p className="italic">{date.note}</p>}
-                          </div>
-                        </div>
-                        <Form method="post">
-                          <input type="hidden" name="courseId" value={course._id} />
-                          <input type="hidden" name="termIndex" value={idx} />
-                          <Button
-                            type="submit"
-                            variant="accent"
-                            size="lg"
-                            className="w-full"
-                            disabled={isSubmitting}
-                          >
-                            {isSubmitting ? "Přihlašuji..." : "Potvrdit přihlášku"}
-                          </Button>
-                        </Form>
+                  <div key={idx} className="p-4 rounded-lg border space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{date.location}</span>
+                      </div>
+                      {date.capacity && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>Kapacita: {date.capacity}</span>
+                        </div>
+                      )}
+                      {date.note && (
+                        <p className="text-sm text-muted-foreground italic">{date.note}</p>
+                      )}
+                    </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="accent" size="sm" className="w-full">
+                          Přihlásit se
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Přihlásit se na kurz</DialogTitle>
+                          <DialogDescription>
+                            Potvrzením se přihlásíte na vybraný termín kurzu
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{course.title}</span></p>
+                            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span></p>
+                            <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{date.location}</span></p>
+                          </div>
+                          <Form method="post">
+                            <input type="hidden" name="courseId" value={course._id} />
+                            <input type="hidden" name="termIndex" value={idx} />
+                            <Button
+                              type="submit"
+                              variant="accent"
+                              size="lg"
+                              className="w-full"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Přihlašuji..." : "Potvrdit přihlášku"}
+                            </Button>
+                          </Form>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 ))}
-              </CardContent>
+              </div>
+              </div>
             </Card>
           )}
 
           {(course.contact_name || course.contact_email) && (
             <Card>
-              <CardHeader>
-                <CardTitle>Kontakt</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {course.contact_name && (
-                  <p className="font-semibold">{course.contact_name}</p>
-                )}
-                {course.contact_email && (
-                  <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
-                    <Mail className="w-4 h-4" />
-                    {course.contact_email}
-                  </a>
-                )}
-              </CardContent>
+              <div className="p-5">
+                <SectionHeader icon={Mail} title="Kontakt" className="mb-4" />
+                <div className="space-y-2">
+                  {course.contact_name && (
+                    <p className="font-semibold text-sm">{course.contact_name}</p>
+                  )}
+                  {course.contact_email && (
+                    <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
+                      <Mail className="w-4 h-4" />
+                      {course.contact_email}
+                    </a>
+                  )}
+                </div>
+              </div>
             </Card>
           )}
         </div>
