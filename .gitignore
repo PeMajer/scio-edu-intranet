@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .env
+.dev.vars
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -19,6 +20,7 @@ dist-ssr
 # Remix build output
 /public/build/
 /functions/
+.cache/
 
 # Editor directories and files
 .vscode/*

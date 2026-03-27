@@ -391,42 +391,42 @@ Otevři prohlížeč na **http://localhost:3000** — měla by se zobrazit přih
 
 ## Fáze 3 — Obsah a Sanity Studio
 
-### 🟢 Krok 12 — Získej Google Calendar embed URL
+### 🟢 Krok 12 — Nastav Google Calendar API (service account)
 
-> 💡 Pokud zadavatel **už má** sdílený kalendář ScioEdu akcí, přeskoč bod 1 a rovnou zjisti embed URL (bod 3).
+> 💡 Kalendář nemusí být veřejný — přístup je přes service account. Vytvoříme ho v Google Cloud a sdílíme s ním kalendář.
 
-1. **Vytvoř nový sdílený kalendář** (pokud ještě neexistuje):
+1. **Vytvoř nový kalendář** (pokud ještě neexistuje):
    - Otevři **calendar.google.com** (přihlášený jako `@scioskola.cz`)
    - V levém panelu klikni na **+** vedle „Další kalendáře" → **Vytvořit nový kalendář**
    - **Název:** `ScioEdu — vzdělávací akce`
-   - **Popis:** `Kalendář školení a kurzů organizovaných ScioEdu`
    - **Časové pásmo:** `(GMT+01:00) Středoevropský čas — Praha`
    - Klikni **Vytvořit kalendář**
 
-2. **Nastav sdílení** (aby embed fungoval):
-   - V levém panelu najdi nový kalendář → klikni na tři tečky **⋮** → **Nastavení a sdílení**
-   - Sekce **Oprávnění přístupu k akcím**:
-     - Zaškrtni **Zpřístupnit veřejnosti**
-     - Oprávnění: **Zobrazit všechny podrobnosti o události**
-   > ⚠️ Bez veřejného sdílení embed iframe nebude fungovat (zobrazí prázdný kalendář). V kalendáři budou jen názvy a časy kurzů, žádné citlivé údaje.
+2. **Vytvoř service account v Google Cloud:**
+   - Jdi na **console.cloud.google.com** → vyber nebo vytvoř projekt
+   - **APIs & Services → Enable APIs** → vyhledej a povol **Google Calendar API**
+   - **IAM & Admin → Service Accounts → Create Service Account**
+   - Název: `calendar-reader`, žádná IAM role nepotřeba
+   - Po vytvoření: záložka **Keys → Add Key → JSON → Download** (stáhne se JSON soubor)
 
-3. **Zkopíruj embed URL:**
-   - Na stejné stránce nastavení scrollni dolů k sekci **Integrovat kalendář**
-   - Najdi **Vložit kód** — bude tam iframe HTML. Z něj potřebuješ jen URL z atributu `src`:
-     ```
-     https://calendar.google.com/calendar/embed?src=abc123%40group.calendar.google.com&ctz=Europe%2FPrague
-     ```
-   - Zkopíruj tuto URL
+3. **Sdílej kalendář se service accountem:**
+   - Google Calendar → nastavení kalendáře ScioEdu → **Sdílení s konkrétními lidmi**
+   - Přidej email service accountu (z JSON souboru, pole `client_email`, vypadá jako `calendar-reader@projekt.iam.gserviceaccount.com`)
+   - Oprávnění: **Zobrazit všechny podrobnosti o události**
 
-4. **Vlož do `.env`:**
+4. **Vlož hodnoty do `.env` a `.dev.vars`:**
    ```
-   GOOGLE_CALENDAR_EMBED_URL=https://calendar.google.com/calendar/embed?src=abc123%40group.calendar.google.com&ctz=Europe%2FPrague
+   GOOGLE_SERVICE_ACCOUNT_EMAIL=calendar-reader@projekt.iam.gserviceaccount.com
+   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n
+   GOOGLE_CALENDAR_ID=scioedu@scioskola.cz
    ```
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` = pole `client_email` z JSON souboru
+   - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` = pole `private_key` z JSON souboru (zkopíruj celý řetězec včetně `-----BEGIN...`)
+   - `GOOGLE_CALENDAR_ID` = ID kalendáře ze sekce **Nastavení a sdílení → Integrovat kalendář**
 
 5. **Přidej testovací událost:**
    - V Google Calendar klikni na datum → vytvoř událost v kalendáři „ScioEdu — vzdělávací akce"
-   - Název: `Testovací kurz — Akademie pro nováčky`
-   - Datum: jakýkoli budoucí
+   - Název: `Testovací kurz — Akademie pro nováčky`, datum: jakýkoli budoucí
    - Ověř, že se zobrazuje na stránce `/kalendar` v intranetu (po restartu dev serveru)
 
 ---
@@ -529,7 +529,9 @@ Klikni na **Stránka sekce** → **Create new** a vytvoř 4 záznamy:
 | `SANITY_DATASET` | **Text** | `production` |
 | `SANITY_API_TOKEN` | **Secret** | tvůj Sanity token |
 | `PUBLIC_SITE_URL` | **Text** | `https://intranet.scioedu.cz` |
-| `GOOGLE_CALENDAR_EMBED_URL` | **Text** | embed URL z kroku 12 |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | **Text** | email service accountu (viz krok 12) |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | **Secret** | private_key z JSON klíče (viz krok 12) |
+| `GOOGLE_CALENDAR_ID` | **Text** | `scioedu@scioskola.cz` |
 
 > 💡 Proměnné označené jako **Secret** jsou zašifrované a nejdou zpětně zobrazit. **Text** proměnné jsou viditelné — pro non-sensitive hodnoty je to OK.
 
