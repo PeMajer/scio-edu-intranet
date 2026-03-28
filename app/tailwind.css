@@ -161,3 +161,26 @@ h1, h2, h3, h4, h5, h6 {
 @utility text-brand-muted { color: var(--color-scioedu-muted); }
 @utility bg-brand-light-pale { background-color: color-mix(in srgb, var(--color-scioedu-light) 30%, white); }
 @utility bg-brand-light-hover { background-color: color-mix(in srgb, var(--color-scioedu-light) 40%, white); }
+
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  -webkit-overflow-scrolling: auto;
+}
+/* Force non-overlay scrollbar on WebKit (macOS) */
+.scrollbar-visible::-webkit-scrollbar {
+  -webkit-appearance: none;
+  height: 10px;
+}
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.15);
+  border-radius: 5px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 5px;
+  min-width: 40px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted) / 0.6);
+}
