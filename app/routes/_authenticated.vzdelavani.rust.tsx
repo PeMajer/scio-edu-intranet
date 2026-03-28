@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
@@ -7,6 +7,14 @@ import { SectionHeader } from "~/components/layout/section-header";
 import { CourseCard } from "~/components/course-card";
 import { Card } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
 import { Target, Wrench, Sparkles, ExternalLink, Link2 } from "lucide-react";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
@@ -65,13 +73,26 @@ export default function VzdelavaniRust() {
   return (
     <>
       <PageHeader
+        fullWidth
         title="Vzdělávání a růst pro každého"
         description="Kurzy zaměřené na osobní rozvoj a odborné dovednosti"
         imageUrl={coverImageUrl || "/images/hero-learning.jpg"}
-        breadcrumbs={[
-          { label: "Vzdělávání", href: "/vzdelavani" },
-          { label: "Osobní růst" },
-        ]}
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild className="text-white/70 hover:text-white transition-colors">
+                  <Link to="/vzdelavani">Vzdělávání</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/50" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white font-medium">Osobní růst</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+        className="-mt-6 mb-8"
       />
 
       {introText && (
@@ -89,9 +110,9 @@ export default function VzdelavaniRust() {
               <section key={key}>
                 <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
                 {courses.length === 0 ? (
-                  <p className="text-muted-foreground text-sm py-4">
-                    Momentálně nejsou k dispozici žádné kurzy
-                  </p>
+                  <div className="rounded-2xl border-2 border-dashed border-border p-10 text-center text-muted-foreground">
+                    <p className="text-sm">Momentálně nejsou k dispozici žádné kurzy.</p>
+                  </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-5">
                     {courses.map((course) => (

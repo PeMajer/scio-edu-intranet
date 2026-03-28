@@ -3,7 +3,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
-import { ArrowRight, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
+import { GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 
 const sectionMeta: Record<
   string,
@@ -80,9 +80,11 @@ export default function VzdelavaniIndex() {
   return (
     <>
       <PageHeader
+        fullWidth
         title="Vzdělávání"
         description="Vyberte si z našich vzdělávacích kategorií"
         imageUrl="/images/hero-classroom.jpg"
+        className="-mt-6 mb-8"
       />
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -93,29 +95,26 @@ export default function VzdelavaniIndex() {
             <Link
               key={category.key}
               to={category.href}
-              className="group relative overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all"
+              className="group relative h-[280px] rounded-2xl overflow-hidden cursor-pointer"
             >
-              <div className="h-44 relative overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                  style={{ backgroundImage: `url('${image}')` }}
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-60`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-bold text-white text-lg drop-shadow-md">
-                    {category.title}
-                  </h3>
+              <img
+                src={image}
+                alt={category.title}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+              />
+              <div
+                className="absolute inset-x-0 bottom-0 h-3/5"
+                style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 90%, black) 0%, color-mix(in srgb, var(--color-scioedu-primary) 50%, transparent) 60%, transparent 100%)' }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                <div className="flex items-center gap-2 text-lg font-semibold text-white mb-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+                  <Icon className="w-5 h-5" />
+                  {category.title}
                 </div>
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  {category.description}
-                </p>
-                <ArrowRight className="w-5 h-5 text-muted-foreground/40 shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-base text-white/90 flex-1">{category.description}</span>
+                  <span className="text-white text-lg">→</span>
+                </div>
               </div>
             </Link>
           );

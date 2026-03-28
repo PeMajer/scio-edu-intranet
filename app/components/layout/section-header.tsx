@@ -13,7 +13,7 @@ export function SectionHeader({ icon: Icon, title, className }: SectionHeaderPro
       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
         <Icon className="w-4 h-4 text-primary" />
       </div>
-      <h3 className="font-semibold text-sm">{title}</h3>
+      <h3 className="font-[family-name:var(--font-poppins)] font-bold text-2xl text-foreground">{title}</h3>
     </div>
   );
 }

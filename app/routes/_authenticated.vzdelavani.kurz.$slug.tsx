@@ -2,10 +2,17 @@ import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from
 import { useLoaderData, Form, useNavigation, Link } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Separator } from "~/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +21,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "~/components/ui/dialog";
-import { PageHeader } from "~/components/layout/page-header";
-import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, Tag } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { PortableText } from "@portabletext/react";
@@ -65,240 +71,270 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 }
 
+const sectionLabels: Record<string, { label: string; href: string }> = {
+  novacek: { label: "Nováček", href: "/vzdelavani/novacek" },
+  rust: { label: "Osobní růst", href: "/vzdelavani/rust" },
+  tymy: { label: "Pro týmy", href: "/vzdelavani/tymy" },
+  cesty: { label: "Vzdělávací cesty", href: "/vzdelavani/cesty" },
+};
+
 export default function KurzDetail() {
   const { course, courseImage, lecturerPhoto } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const section = course.section ? sectionLabels[course.section] : null;
 
   if (course.is_external) {
     return (
-      <div className="max-w-4xl">
-        <PageHeader
-          title={course.title}
-          breadcrumbs={[
-            { label: "Vzdělávání", href: "/vzdelavani" },
-            { label: course.title },
-          ]}
-        />
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <Badge variant="outline" className="mb-3">Externí kurz</Badge>
-                {course.highlight && (
-                  <p className="text-lg text-muted-foreground">{course.highlight}</p>
-                )}
-                {course.tags && course.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {course.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">{tag}</Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <Breadcrumb className="text-sm mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild><Link to="/vzdelavani">Vzdělávání</Link></BreadcrumbLink>
+            </BreadcrumbItem>
+            {section && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild><Link to={section.href}>{section.label}</Link></BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator className="hidden sm:block" />
+            <BreadcrumbItem className="hidden sm:inline-flex"><BreadcrumbPage>{course.title}</BreadcrumbPage></BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <h1 className="font-[family-name:var(--font-poppins)] font-extrabold text-3xl text-foreground tracking-tight mb-4">
+              {course.title}
+            </h1>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge className="bg-brand-light text-brand-primary border-0 font-semibold">Externí kurz</Badge>
+              {course.tags?.map((tag) => (
+                <Badge key={tag} className="bg-brand-light text-brand-primary border-0 font-semibold">{tag}</Badge>
+              ))}
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
+
             {courseImage && (
-              <img src={courseImage} alt={course.title} className="w-full h-64 object-cover rounded-lg" />
+              <img src={courseImage} alt={course.title} className="rounded-2xl overflow-hidden aspect-video object-cover w-full shadow-md my-6" />
+            )}
+
+            {course.highlight && (
+              <p className="text-lg text-muted-foreground">{course.highlight}</p>
             )}
 
             {course.description && course.description.length > 0 && (
-              <div className="prose prose-gray max-w-none">
+              <div className="text-base leading-7 space-y-4 text-foreground/80">
                 <PortableText value={course.description} />
               </div>
             )}
 
             {course.target_audience && (
               <div>
-                <h3 className="font-semibold mb-2">Pro koho je kurz určen</h3>
-                <p className="text-muted-foreground">{course.target_audience}</p>
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-2">Pro koho je kurz určen</h3>
+                <p className="text-foreground/80">{course.target_audience}</p>
               </div>
             )}
 
             {course.lecturer && (
-              <div>
-                <h3 className="font-semibold mb-3">Lektor</h3>
-                <div className="flex items-start gap-4">
-                  <Avatar className="w-16 h-16">
-                    {lecturerPhoto && <AvatarImage src={lecturerPhoto} />}
-                    <AvatarFallback>{course.lecturer.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{course.lecturer.name}</p>
-                    {course.lecturer.bio && (
-                      <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
-                    )}
+              <div className="mt-8 bg-muted/40 rounded-2xl p-6 flex gap-4">
+                {lecturerPhoto ? (
+                  <img src={lecturerPhoto} alt={course.lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light" />
+                ) : (
+                  <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light">
+                    {course.lecturer.name[0]}
                   </div>
+                )}
+                <div>
+                  <p className="font-[family-name:var(--font-poppins)] font-bold">{course.lecturer.name}</p>
+                  {course.lecturer.bio && (
+                    <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
+                  )}
+                  {course.lecturer.email && (
+                    <a href={`mailto:${course.lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-block">
+                      {course.lecturer.email}
+                    </a>
+                  )}
                 </div>
               </div>
             )}
+          </div>
 
-            <div className="pt-4 border-t">
-              <Button variant="accent" size="lg" className="w-full" asChild>
+          <div>
+            <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
+              <div className="font-[family-name:var(--font-poppins)] text-3xl font-extrabold text-brand-primary my-3">
+                {course.price === 0 ? "Zdarma" : course.price ? `${course.price} Kč` : null}
+              </div>
+              <Separator className="my-4" />
+              <Button className="w-full mt-5 bg-brand-accent hover:opacity-90 text-black font-bold rounded-xl py-3 text-base font-[family-name:var(--font-poppins)]" asChild>
                 <a href={course.external_url} target="_blank" rel="noopener noreferrer">
                   Přejít na přihlášení
                   <ExternalLink className="w-5 h-5 ml-2" />
                 </a>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl">
-      <PageHeader
-        title={course.title}
-        breadcrumbs={[
-          { label: "Vzdělávání", href: "/vzdelavani" },
-          { label: course.title },
-        ]}
-      />
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <Badge variant="secondary" className="w-fit mb-3">Interní kurz</Badge>
-              {course.highlight && (
-                <p className="text-lg text-muted-foreground">{course.highlight}</p>
-              )}
-              {course.tags && course.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {course.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">{tag}</Badge>
-                  ))}
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {courseImage && (
-                <img src={courseImage} alt={course.title} className="w-full h-80 object-cover rounded-lg" />
-              )}
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <Breadcrumb className="text-sm mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild><Link to="/vzdelavani">Vzdělávání</Link></BreadcrumbLink>
+          </BreadcrumbItem>
+          {section && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild><Link to={section.href}>{section.label}</Link></BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+          )}
+          <BreadcrumbSeparator className="hidden sm:block" />
+          <BreadcrumbItem className="hidden sm:inline-flex"><BreadcrumbPage>{course.title}</BreadcrumbPage></BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-              {course.description && course.description.length > 0 && (
-                <div className="prose prose-gray max-w-none">
-                  <PortableText value={course.description} />
-                </div>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left column */}
+        <div className="lg:col-span-2">
+          <h1 className="font-[family-name:var(--font-poppins)] font-extrabold text-3xl text-foreground tracking-tight mb-4">
+            {course.title}
+          </h1>
 
-              {course.target_audience && (
-                <div>
-                  <h3 className="font-semibold mb-2">Pro koho je kurz určen</h3>
-                  <p className="text-muted-foreground">{course.target_audience}</p>
-                </div>
-              )}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Badge className="bg-brand-light text-brand-primary border-0 font-semibold">Interní kurz</Badge>
+            {course.tags?.map((tag) => (
+              <Badge key={tag} className="bg-brand-light text-brand-primary border-0 font-semibold">{tag}</Badge>
+            ))}
+          </div>
 
-              {course.benefits && course.benefits.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">Co získáte</h3>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    {course.benefits.map((benefit, idx) => (
-                      <li key={idx}>{benefit}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {courseImage && (
+            <img src={courseImage} alt={course.title} className="rounded-2xl overflow-hidden aspect-video object-cover w-full shadow-md my-6" />
+          )}
 
-              {course.materials && course.materials.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">Materiály</h3>
-                  <div className="space-y-2">
-                    {course.materials.map((material, idx) => (
-                      <a
-                        key={idx}
-                        href={material.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-primary hover:underline"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        {material.label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {course.highlight && (
+            <p className="text-lg text-muted-foreground mb-4">{course.highlight}</p>
+          )}
+
+          {course.description && course.description.length > 0 && (
+            <div className="text-base leading-7 space-y-4 text-foreground/80">
+              <PortableText value={course.description} />
+            </div>
+          )}
+
+          {course.target_audience && (
+            <div className="mt-6">
+              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-2">Pro koho je kurz určen</h3>
+              <p className="text-foreground/80">{course.target_audience}</p>
+            </div>
+          )}
+
+          {course.benefits && course.benefits.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-3">Co získáte</h3>
+              <ul className="space-y-2">
+                {course.benefits.map((benefit, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-foreground/80">
+                    <CheckCircle2 className="text-brand-primary mt-0.5 shrink-0" size={18} />
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {course.materials && course.materials.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-3">Materiály</h3>
+              <div className="flex flex-wrap gap-2">
+                {course.materials.map((material, idx) => (
+                  <a
+                    key={idx}
+                    href={material.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-brand-light-pale border border-brand-light text-brand-primary px-3 py-2 rounded-lg text-sm hover:bg-brand-light transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    {material.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {course.lecturer && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Lektor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-start gap-4">
-                  <Avatar className="w-20 h-20">
-                    {lecturerPhoto && <AvatarImage src={lecturerPhoto} />}
-                    <AvatarFallback className="text-lg">{course.lecturer.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{course.lecturer.name}</h3>
-                    {course.lecturer.bio && (
-                      <p className="text-muted-foreground mt-2">{course.lecturer.bio}</p>
-                    )}
-                    {course.lecturer.email && (
-                      <a href={`mailto:${course.lecturer.email}`} className="flex items-center gap-2 text-primary mt-3 text-sm">
-                        <Mail className="w-4 h-4" />
-                        {course.lecturer.email}
-                      </a>
-                    )}
-                  </div>
+            <div className="mt-8 bg-muted/40 rounded-2xl p-6 flex gap-4">
+              {lecturerPhoto ? (
+                <img src={lecturerPhoto} alt={course.lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light" />
+              ) : (
+                <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light">
+                  {course.lecturer.name[0]}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+              <div>
+                <p className="font-[family-name:var(--font-poppins)] font-bold">{course.lecturer.name}</p>
+                {course.lecturer.bio && (
+                  <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
+                )}
+                {course.lecturer.email && (
+                  <a href={`mailto:${course.lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-block">
+                    {course.lecturer.email}
+                  </a>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informace o kurzu</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {course.duration_minutes && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Clock className="w-5 h-5 text-muted-foreground" />
-                  <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
-                </div>
-              )}
-              {course.price !== undefined && (
-                <div className="text-2xl font-bold text-primary">
-                  {course.price === 0 ? "Zdarma" : `${course.price} Kč`}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Right column — sticky sidebar */}
+        <div>
+          <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
+            {course.duration_minutes && (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Clock className="w-4 h-4" />
+                <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
+              </div>
+            )}
 
-          {course.dates && course.dates.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Dostupné termíny</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            {course.price !== undefined && (
+              <div className="font-[family-name:var(--font-poppins)] text-3xl font-extrabold text-brand-primary my-3">
+                {course.price === 0 ? "Zdarma" : `${course.price} Kč`}
+              </div>
+            )}
+
+            <Separator className="my-4" />
+
+            {course.dates && course.dates.length > 0 && (
+              <div className="bg-brand-light-pale rounded-xl p-4 space-y-3">
+                <p className="font-[family-name:var(--font-poppins)] font-bold text-sm mb-2">Dostupné termíny</p>
                 {course.dates.map((date, idx) => (
                   <Dialog key={idx}>
                     <DialogTrigger asChild>
-                      <button className="w-full text-left p-4 rounded-lg border hover:border-primary hover:bg-accent/10 transition-all">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{date.location}</span>
-                          </div>
-                          {date.capacity && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span>Kapacita: {date.capacity}</span>
-                            </div>
-                          )}
+                      <button className="w-full text-left space-y-1.5 hover:opacity-80 transition-opacity">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="text-brand-primary shrink-0" size={14} />
+                          <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
                         </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="text-brand-primary shrink-0" size={14} />
+                          <span>{date.location}</span>
+                        </div>
+                        {date.capacity && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="text-brand-primary shrink-0" size={14} />
+                            <span>Kapacita: {date.capacity}</span>
+                          </div>
+                        )}
+                        {idx < course.dates!.length - 1 && <Separator className="mt-3" />}
                       </button>
                     </DialogTrigger>
                     <DialogContent>
@@ -334,28 +370,26 @@ export default function KurzDetail() {
                     </DialogContent>
                   </Dialog>
                 ))}
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          {(course.contact_name || course.contact_email) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Kontakt</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <Button className="w-full mt-5 bg-brand-accent hover:opacity-90 text-black font-bold rounded-xl py-3 text-base font-[family-name:var(--font-poppins)]">
+              Přihlásit se
+            </Button>
+
+            {(course.contact_name || course.contact_email) && (
+              <div className="border-t border-border mt-5 pt-5">
                 {course.contact_name && (
                   <p className="font-semibold">{course.contact_name}</p>
                 )}
                 {course.contact_email && (
-                  <a href={`mailto:${course.contact_email}`} className="flex items-center gap-2 text-primary text-sm">
-                    <Mail className="w-4 h-4" />
+                  <a href={`mailto:${course.contact_email}`} className="text-brand-primary text-sm">
                     {course.contact_email}
                   </a>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

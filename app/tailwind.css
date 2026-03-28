@@ -151,3 +151,12 @@ h1, h2, h3, h4, h5, h6 {
 .font-label {
   font-family: var(--font-roboto);
 }
+
+@utility bg-brand-primary { background-color: var(--color-scioedu-primary); }
+@utility text-brand-primary { color: var(--color-scioedu-primary); }
+@utility border-brand-primary { border-color: var(--color-scioedu-primary); }
+@utility bg-brand-accent { background-color: var(--color-scioedu-accent); }
+@utility text-brand-accent { color: var(--color-scioedu-accent); }
+@utility bg-brand-light { background-color: var(--color-scioedu-light); }
+@utility text-brand-muted { color: var(--color-scioedu-muted); }
+@utility bg-brand-light-pale { background-color: color-mix(in srgb, var(--color-scioedu-light) 30%, white); }

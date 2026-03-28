@@ -1,7 +1,4 @@
 import { Link } from "@remix-run/react";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { ArrowRight, ExternalLink } from "lucide-react";
 
 interface CourseCardProps {
   title: string;
@@ -41,50 +38,26 @@ export function CourseCard({
   return (
     <Link
       to={`/vzdelavani/kurz/${slug}`}
-      className="group relative overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all flex flex-col"
+      className="group relative h-[200px] rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all duration-200"
     >
-      {/* Image */}
-      <div className="h-36 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-          style={{ backgroundImage: `url('${bgImage}')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-        {/* Badges */}
-        <div className="absolute top-3 right-3 flex gap-2">
-          {isExternal && (
-            <Badge variant="accent" className="text-xs shadow-md">
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Externí
-            </Badge>
-          )}
-          {typeof price === "number" && price > 0 && (
-            <Badge variant="secondary" className="text-xs shadow-md">
-              {price.toLocaleString("cs-CZ")} Kč
-            </Badge>
-          )}
-          {(!price || price === 0) && (
-            <Badge variant="secondary" className="text-xs shadow-md">
-              Zdarma
-            </Badge>
-          )}
-        </div>
-      </div>
-      {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1 line-clamp-2">
+      <img
+        src={bgImage}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-3/5"
+        style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 90%, black) 0%, color-mix(in srgb, var(--color-scioedu-primary) 50%, transparent) 60%, transparent 100%)' }}
+      />
+      <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+        <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg text-white mb-1 line-clamp-2">
           {title}
         </h3>
-        {highlight && (
-          <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-            {highlight}
-          </p>
-        )}
-        <div className="flex items-center justify-end mt-3 pt-3 border-t">
-          <span className="text-sm font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
-            Zobrazit detail
-            <ArrowRight className="w-4 h-4" />
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-sm text-white/90 flex-1 line-clamp-2">
+            {highlight || (price === 0 ? "Zdarma" : price ? `${price.toLocaleString("cs-CZ")} Kč` : "")}
           </span>
+          <span className="text-white text-lg shrink-0">→</span>
         </div>
       </div>
     </Link>

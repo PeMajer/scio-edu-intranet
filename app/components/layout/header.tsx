@@ -64,14 +64,14 @@ function NavLinkItem({
             ? cn(
                 "flex items-center px-3 py-2.5 rounded-lg text-base",
                 isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                  ? "border-b-2 border-brand-primary text-brand-primary pb-0.5"
+                  : "text-muted-foreground hover:text-brand-primary transition-colors text-sm font-medium"
               )
             : cn(
-                "text-sm px-3 py-2 rounded-md",
+                "text-sm px-3 py-2",
                 isActive
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                  ? "border-b-2 border-brand-primary text-brand-primary pb-0.5"
+                  : "text-muted-foreground hover:text-brand-primary transition-colors text-sm font-medium"
               )
         )
       }
@@ -96,7 +96,7 @@ function UserMenu({ user, profile }: HeaderProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 ring-2 ring-brand-light hover:ring-brand-primary transition-all">
             {profile?.avatar_url && (
               <AvatarImage src={profile.avatar_url} alt={profile?.full_name ?? ""} />
             )}
@@ -139,7 +139,7 @@ export function Header({ user, profile }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="border-b border-border shadow-sm bg-background/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
