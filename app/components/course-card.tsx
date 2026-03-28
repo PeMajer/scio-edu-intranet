@@ -1,12 +1,20 @@
 import { Link } from "@remix-run/react";
+import type { LucideIcon } from "lucide-react";
 
 interface CourseCardProps {
   title: string;
-  slug: string;
+  /** Slug kurzu — generuje href `/vzdelavani/kurz/{slug}`. Ignorováno pokud je zadán `href`. */
+  slug?: string;
+  /** Přímý odkaz — má přednost před `slug`. */
+  href?: string;
   highlight?: string;
   price?: number;
   isExternal?: boolean;
   imageUrl?: string;
+  /** Ikona zobrazená vedle názvu. */
+  icon?: LucideIcon;
+  /** Tailwind výška, default "h-[220px] sm:h-[260px]". */
+  height?: string;
 }
 
 const placeholderImages = [
@@ -28,17 +36,24 @@ function getPlaceholderImage(title: string): string {
 export function CourseCard({
   title,
   slug,
+  href,
   highlight,
   price,
   isExternal,
   imageUrl,
+  icon: Icon,
+  height = "h-[220px] sm:h-[260px]",
 }: CourseCardProps) {
   const bgImage = imageUrl || getPlaceholderImage(title);
+  const to = href || `/vzdelavani/kurz/${slug}`;
+
+  const subtitle = highlight
+    || (price === 0 ? "Zdarma" : price ? `${price.toLocaleString("cs-CZ")} Kč` : "");
 
   return (
     <Link
-      to={`/vzdelavani/kurz/${slug}`}
-      className="group relative h-[200px] rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all duration-200"
+      to={to}
+      className={`group relative ${height} rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all duration-200`}
     >
       <img
         src={bgImage}
@@ -50,15 +65,16 @@ export function CourseCard({
         style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 90%, black) 0%, color-mix(in srgb, var(--color-scioedu-primary) 50%, transparent) 60%, transparent 100%)' }}
       />
       <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-        <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg text-white mb-1 line-clamp-2">
-          {title}
-        </h3>
-        <div className="flex justify-between items-center gap-2">
-          <span className="text-sm text-white/90 flex-1 line-clamp-2">
-            {highlight || (price === 0 ? "Zdarma" : price ? `${price.toLocaleString("cs-CZ")} Kč` : "")}
-          </span>
-          <span className="text-white text-lg shrink-0">→</span>
+        <div className="flex items-center gap-2 text-white font-semibold text-lg mb-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+          {Icon && <Icon className="w-5 h-5" />}
+          <span className="font-[family-name:var(--font-poppins)] font-bold line-clamp-2">{title}</span>
         </div>
+        {subtitle && (
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-sm text-white/90 flex-1 line-clamp-2">{subtitle}</span>
+            <span className="text-white text-lg shrink-0">→</span>
+          </div>
+        )}
       </div>
     </Link>
   );

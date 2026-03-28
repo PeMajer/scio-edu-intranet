@@ -81,13 +81,13 @@ export default function VzdelavaniRust() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild className="text-white/70 hover:text-white transition-colors">
+                <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
                   <Link to="/vzdelavani">Vzdělávání</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-white/50" />
+              <BreadcrumbSeparator className="text-white/40" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-white font-medium">Osobní růst</BreadcrumbPage>
+                <BreadcrumbPage className="text-white/80 font-medium">Osobní růst</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

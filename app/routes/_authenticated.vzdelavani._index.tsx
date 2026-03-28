@@ -1,8 +1,9 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
+import { CourseCard } from "~/components/course-card";
 import { GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 
 const sectionMeta: Record<
@@ -88,37 +89,17 @@ export default function VzdelavaniIndex() {
       />
 
       <div className="grid md:grid-cols-2 gap-6">
-        {visibleCategories.map((category) => {
-          const Icon = category.icon;
-          const image = sectionImages[category.key] || category.fallbackImage;
-          return (
-            <Link
-              key={category.key}
-              to={category.href}
-              className="group relative h-[280px] rounded-2xl overflow-hidden cursor-pointer"
-            >
-              <img
-                src={image}
-                alt={category.title}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-              />
-              <div
-                className="absolute inset-x-0 bottom-0 h-3/5"
-                style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 90%, black) 0%, color-mix(in srgb, var(--color-scioedu-primary) 50%, transparent) 60%, transparent 100%)' }}
-              />
-              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                <div className="flex items-center gap-2 text-lg font-semibold text-white mb-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
-                  <Icon className="w-5 h-5" />
-                  {category.title}
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-base text-white/90 flex-1">{category.description}</span>
-                  <span className="text-white text-lg">→</span>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+        {visibleCategories.map((category) => (
+          <CourseCard
+            key={category.key}
+            href={category.href}
+            title={category.title}
+            highlight={category.description}
+            imageUrl={sectionImages[category.key] || category.fallbackImage}
+            icon={category.icon}
+            height="h-[220px] sm:h-[280px]"
+          />
+        ))}
       </div>
     </>
   );

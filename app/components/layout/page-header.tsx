@@ -1,4 +1,5 @@
 import { Link } from "@remix-run/react";
+import { Badge } from "~/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,6 +29,8 @@ interface PageHeaderProps {
   preTitle?: React.ReactNode;
   /** Breadcrumb vykreslený uvnitř hero nad titulkem. */
   breadcrumb?: React.ReactNode;
+  /** Badge pills zobrazené mezi breadcrumb a titulkem. */
+  badges?: string[];
 }
 
 export function PageHeader({
@@ -40,6 +43,7 @@ export function PageHeader({
   fullWidth,
   preTitle,
   breadcrumb,
+  badges,
 }: PageHeaderProps) {
   if (imageUrl) {
     return (
@@ -83,7 +87,7 @@ export function PageHeader({
           )}>
             <div className="flex-1">
               {breadcrumb && (
-                <div className="text-white/70 text-sm mb-3 flex items-center gap-1.5">
+                <div className="text-sm mb-4 flex items-center gap-1.5">
                   {breadcrumb}
                 </div>
               )}
@@ -95,7 +99,14 @@ export function PageHeader({
                 {title}
               </h1>
               {description && (
-                <p className="text-white/85 text-lg font-[family-name:var(--font-roboto)] max-w-xl mt-1">{description}</p>
+                <p className="text-white/85 text-[20px] font-[family-name:var(--font-roboto)] max-w-xl mt-1">{description}</p>
+              )}
+              {badges && badges.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {badges.map((badge) => (
+                    <Badge key={badge} variant="brand-accent" size="md">{badge}</Badge>
+                  ))}
+                </div>
               )}
             </div>
             {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}

@@ -13,6 +13,7 @@ import {
   DialogTrigger
 } from "~/components/ui/dialog";
 import { PageHeader } from "~/components/layout/page-header";
+import { Badge } from "~/components/ui/badge";
 import { ArrowRight, Calendar, GraduationCap, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -104,7 +105,7 @@ function CancelButton({ enrollmentId, courseTitle, termDate, termLocation }: {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="text-sm text-muted-foreground hover:text-destructive transition-colors">
+        <button className="text-brand-primary font-medium text-sm cursor-pointer transition-all hover:opacity-80">
           Odhlásit se
         </button>
       </DialogTrigger>
@@ -133,7 +134,7 @@ function CancelButton({ enrollmentId, courseTitle, termDate, termLocation }: {
             <Button
               type="submit"
               variant="destructive"
-              size="lg"
+              size="xl"
               className="w-full"
               disabled={isSubmitting}
             >
@@ -151,79 +152,83 @@ export default function MojeKurzy() {
 
   return (
     <>
-      <PageHeader title="Moje kurzy" description="Přehled vašich přihlášených kurzů" imageUrl="/images/hero-discussion.jpg" />
+      <PageHeader
+        fullWidth
+        title="Moje kurzy"
+        description="Přehled vašich přihlášených kurzů"
+        imageUrl="/images/hero-discussion.jpg"
+        className="-mt-6 mb-8"
+      />
 
       {enrollments.length === 0 ? (
-        <div className="relative overflow-hidden rounded-2xl border bg-card">
-          <div
-            className="h-40 bg-cover bg-center relative"
-            style={{ backgroundImage: "url('/images/hero-classroom.jpg')" }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/70 to-primary/20" />
+        <div className="bg-card rounded-2xl border border-border p-16 text-center">
+          <div className="bg-brand-light-pale rounded-full p-4 inline-flex mb-4">
+            <GraduationCap className="w-8 h-8 text-brand-primary" />
           </div>
-          <div className="text-center px-6 pb-10 -mt-8 relative z-10">
-            <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
-              <GraduationCap className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Zatím nemáte žádné kurzy
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Přihlaste se do svého prvního kurzu a začněte rozvíjet své dovednosti
-            </p>
-            <Button variant="accent" size="lg" asChild>
-              <Link to="/vzdelavani">Prohlédnout kurzy</Link>
-            </Button>
-          </div>
+          <h3 className="font-[family-name:var(--font-poppins)] font-bold text-xl">
+            Zatím nemáte žádné kurzy
+          </h3>
+          <p className="text-muted-foreground text-sm mt-2 mb-6 max-w-md mx-auto">
+            Přihlaste se do svého prvního kurzu a začněte rozvíjet své dovednosti
+          </p>
+          <Button variant="primary" asChild>
+            <Link to="/vzdelavani">Prohlédnout kurzy</Link>
+          </Button>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {enrollments.map((enrollment: EnrollmentWithCourse) => {
             const course = enrollment.course;
             const termDate = course?.dates?.[enrollment.term_index]?.date_start;
             const termLocation = course?.dates?.[enrollment.term_index]?.location;
+            const termNote = course?.dates?.[enrollment.term_index]?.note;
+            const courseHref = course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#";
 
             return (
               <div
                 key={enrollment.id}
-                className="relative overflow-hidden rounded-xl border bg-card flex flex-col"
+                className="flex flex-col sm:flex-row gap-0 sm:gap-5 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
               >
-                {/* Image as link */}
-                <Link
-                  to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
-                  className="group h-36 relative overflow-hidden block"
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                    style={{
-                      backgroundImage: `url('${course?.imageUrl || "/images/hero-classroom.jpg"}')`,
-                    }}
+                {/* Image */}
+                <Link to={courseHref} className="shrink-0 sm:w-56 h-40 sm:h-auto sm:self-stretch relative overflow-hidden group block">
+                  <img
+                    src={course?.imageUrl || "/images/hero-classroom.jpg"}
+                    alt={course?.title || ""}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--color-scioedu-primary) 60%, transparent) 0%, transparent 100%)' }}
+                  />
                 </Link>
+
                 {/* Content */}
-                <div className="p-4 flex-1 flex flex-col">
-                  <Link
-                    to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
-                    className="font-semibold text-foreground hover:text-primary transition-colors mb-2 line-clamp-2"
-                  >
-                    {course?.title || "Neznámý kurz"}
-                  </Link>
-                  <div className="space-y-1.5 flex-1">
-                    {termDate && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="w-3.5 h-3.5 shrink-0" />
-                        <span>{format(new Date(termDate), "d. MMMM yyyy", { locale: cs })}</span>
-                      </div>
-                    )}
-                    {termLocation && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span>{termLocation}</span>
-                      </div>
-                    )}
+                <div className="flex-1 p-5 flex flex-col justify-between">
+                  <div>
+                    <Link to={courseHref} className="font-[family-name:var(--font-poppins)] font-bold text-lg text-foreground hover:text-brand-primary transition-colors line-clamp-2 block">
+                      {course?.title || "Neznámý kurz"}
+                    </Link>
+
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-muted-foreground">
+                      {termDate && (
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="text-brand-primary" size={14} />
+                          {format(new Date(termDate), "d. MMMM yyyy", { locale: cs })}
+                        </span>
+                      )}
+                      {termLocation && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="text-brand-muted" size={14} />
+                          {termLocation}
+                        </span>
+                      )}
+                      {termNote && (
+                        <Badge variant="brand" size="sm" className="capitalize">{termNote}</Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
+
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                     <CancelButton
                       enrollmentId={enrollment.id}
                       courseTitle={course?.title}
@@ -231,10 +236,10 @@ export default function MojeKurzy() {
                       termLocation={termLocation}
                     />
                     <Link
-                      to={course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#"}
-                      className="text-sm font-medium text-primary flex items-center gap-1 hover:gap-2 transition-all"
+                      to={courseHref}
+                      className="text-brand-primary font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
                     >
-                      Detail
+                      Detail kurzu
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>

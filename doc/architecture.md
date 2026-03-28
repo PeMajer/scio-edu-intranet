@@ -39,12 +39,14 @@ app/
 │   └── _authenticated.admin.tsx         # Admin panel
 ├── components/
 │   ├── layout/               # Layout komponenty
-│   │   ├── header.tsx        # Sticky header s navigací + user dropdown + mobile Sheet
+│   │   ├── header.tsx        # Sticky header s navigací + user dropdown + custom mobilní full-screen menu
 │   │   ├── footer.tsx        # Footer s logem a copyright
-│   │   ├── page-header.tsx   # Hlavička stránky (h1 + popis + breadcrumbs + volitelný hero banner)
+│   │   ├── page-header.tsx   # Full-width hero banner s breadcrumb, badges, preTitle props
 │   │   └── section-header.tsx # Nadpis sekce s ikonou (sidebar karty)
-│   ├── ui/                   # shadcn/ui komponenty (button, card, badge, avatar, dialog, sheet, dropdown-menu, separator, breadcrumb)
-│   ├── course-card.tsx       # Karta kurzu s obrázkem
+│   ├── ui/                   # shadcn/ui komponenty (button, card, badge, avatar, dialog, dropdown-menu, separator, breadcrumb)
+│   ├── course-card.tsx       # Univerzální overlay karta (kurzy i kategorie) s icon, href, height props
+│   ├── event-list.tsx        # Seznam událostí s datum chipem (dashboard, kalendář sidebar, selected day)
+│   ├── highlight-box.tsx     # Zvýrazněný box se žlutým pruhem vlevo (CTA, lektor, info)
 │   └── logo.tsx              # Logo komponenta (PNG s CSS filter variantami)
 ├── lib/
 │   ├── supabase.server.ts    # Supabase client + session helpers
@@ -66,7 +68,7 @@ supabase/
 ### Authenticated layout route
 
 Všechny chráněné stránky jsou children `_authenticated.tsx` (pathless layout route). URL se nemění — prefix `_authenticated.` je jen routing convention. Layout poskytuje:
-- `<Header>` se sticky navigací, user dropdown, mobile Sheet menu
+- `<Header>` se sticky navigací, user dropdown, custom full-screen mobilní menu (bez Sheet)
 - `<main>` s container wrapperem (`container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl`)
 - `<Footer>`
 
@@ -86,15 +88,20 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 
 ## Design systém — barvy
 
-| Token | Hex | Použití |
-|---|---|---|
-| primary | `#1DA2AC` | Turquoise — primární akce, headings |
-| accent | `#FCB813` | Mustard yellow — CTA, důrazy |
-| muted | `#687A7C` | Grey-blue — sekundární text |
-| light | `#BADEDF` | Light turquoise — pozadí karet |
-| background | `#F5F7F8` | Stránkové pozadí |
+| Token | Hex | CSS variable | Tailwind utility | Použití |
+|---|---|---|---|---|
+| primary | `#1DA2AC` | `--color-scioedu-primary` | `bg-brand-primary`, `text-brand-primary` | Teal — navigace, linky, ikony |
+| accent | `#FCB813` | `--color-scioedu-accent` | `bg-brand-accent`, `text-brand-accent` | Žlutá — CTA buttony, aktivní nav, hero badges |
+| muted | `#687A7C` | `--color-scioedu-muted` | `text-brand-muted` | Grey-blue — sekundární text |
+| light | `#BADEDF` | `--color-scioedu-light` | `bg-brand-light` | Light turquoise — badge pozadí, hover stavy |
+| light-pale | — | color-mix 30% | `bg-brand-light-pale` | Velmi jemná teal — datum chipy, ikona pozadí |
+| light-hover | — | color-mix 40% | `bg-brand-light-hover` | Jemná teal — hover stavy outline buttonů |
+| background | `#F5F7F8` | `--color-scioedu-bg` | — | Stránkové pozadí |
 
-Barvy jsou v `app/tailwind.css` v `@theme` bloku jako HSL CSS variables (`hsl(var(--primary))`). Vyžaduje Node.js >= 22 (viz `.nvmrc`).
+HSL varianty (shadcn kompatibilní) jsou v `@theme` bloku. Brand raw hex varianty jsou v `:root` bloku.
+Custom `@utility` třídy v `tailwind.css` mapují raw hex na Tailwind classes.
+
+**Důležité:** Brand utility třídy fungují pro `background-color` a `color`, ale NE pro `border-color` — viz `doc/conventions.md` sekce CSS gotchas.
 
 ## Klíčové příkazy
 

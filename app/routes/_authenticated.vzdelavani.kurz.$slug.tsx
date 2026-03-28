@@ -6,6 +6,8 @@ import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
+import { PageHeader } from "~/components/layout/page-header";
+import { HighlightBox } from "~/components/highlight-box";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,6 +29,30 @@ import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
+
+function formatDuration(minutes: number): string {
+  const days = Math.floor(minutes / (60 * 24));
+  const hours = Math.floor((minutes % (60 * 24)) / 60);
+  const mins = minutes % 60;
+  const parts: string[] = [];
+  if (days > 0) {
+    parts.push(`${days} ${days === 1 ? 'den' : days >= 2 && days <= 4 ? 'dny' : 'dní'}`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? 'hodina' : hours >= 2 && hours <= 4 ? 'hodiny' : 'hodin'}`);
+  }
+  if (mins > 0 && days === 0) {
+    parts.push(`${mins} ${mins === 1 ? 'minuta' : mins >= 2 && mins <= 4 ? 'minuty' : 'minut'}`);
+  }
+  return parts.join(' ') || `${minutes} minut`;
+}
+
+function safeFormatDate(value: string | undefined | null, fmt: string): string {
+  if (!value) return "Datum neuvedeno";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "Neplatné datum";
+  return format(d, fmt, { locale: cs });
+}
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
@@ -124,11 +150,11 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {isEnrolled ? (
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" className="w-full mt-3">
             Odhlásit se
           </Button>
         ) : (
-          <Button className="w-full bg-brand-accent hover:opacity-90 text-black font-semibold rounded-lg text-sm" size="sm">
+          <Button variant="primary" className="w-full mt-3">
             Přihlásit se
           </Button>
         )}
@@ -145,8 +171,8 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
         <div className="space-y-4">
           <div className="space-y-2">
             <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
-            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(dateStart), "d. MMMM yyyy", { locale: cs })}</span></p>
-            <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{location}</span></p>
+            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{safeFormatDate(dateStart, "d. MMMM yyyy")}</span></p>
+            {location && <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{location}</span></p>}
           </div>
           {fetcher.data?.error && (
             <p className="text-sm text-destructive">{fetcher.data.error}</p>
@@ -157,8 +183,8 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
             <input type="hidden" name="termIndex" value={termIndex} />
             <Button
               type="submit"
-              variant={isEnrolled ? "destructive" : "accent"}
-              size="lg"
+              variant={isEnrolled ? "destructive" : "primary"}
+              size="xl"
               className="w-full"
               disabled={isSubmitting}
             >
@@ -180,299 +206,274 @@ const sectionLabels: Record<string, { label: string; href: string }> = {
   cesty: { label: "Vzdělávací cesty", href: "/vzdelavani/cesty" },
 };
 
+function HeroBreadcrumb({ section, title }: { section: { label: string; href: string } | null; title: string }) {
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
+            <Link to="/vzdelavani">Vzdělávání</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        {section && (
+          <>
+            <BreadcrumbSeparator className="text-white/40" />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
+                <Link to={section.href}>{section.label}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </>
+        )}
+        <BreadcrumbSeparator className="text-white/50 hidden sm:block" />
+        <BreadcrumbItem className="hidden sm:inline-flex">
+          <BreadcrumbPage className="text-white/80 font-medium">{title}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
+function LecturerCard({ lecturer, photo }: { lecturer: Course["lecturer"]; photo: string | null }) {
+  if (!lecturer) return null;
+  return (
+    <HighlightBox className="mt-8 flex gap-4 items-start">
+      {photo ? (
+        <img src={photo} alt={lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light shrink-0" />
+      ) : (
+        <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light shrink-0">
+          {lecturer.name[0]}
+        </div>
+      )}
+      <div>
+        <p className="font-[family-name:var(--font-poppins)] font-bold text-foreground">{lecturer.name}</p>
+        {lecturer.bio && (
+          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{lecturer.bio}</p>
+        )}
+        {lecturer.email && (
+          <a href={`mailto:${lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-flex items-center gap-1">
+            <Mail size={14} />
+            {lecturer.email}
+          </a>
+        )}
+      </div>
+    </HighlightBox>
+  );
+}
+
+function PriceDisplay({ price }: { price?: number }) {
+  if (price === undefined) return null;
+  const isFree = Number(price) === 0 || String(price).toLowerCase() === "zdarma";
+  return (
+    <div className={`font-[family-name:var(--font-poppins)] font-extrabold text-3xl mt-1 mb-4 ${isFree ? "text-brand-primary" : "text-foreground"}`}>
+      {isFree ? "Zdarma" : `${price} Kč`}
+    </div>
+  );
+}
+
 export default function KurzDetail() {
   const { course, courseImage, lecturerPhoto, enrolledTerms } = useLoaderData<typeof loader>();
   const enrolledSet = new Set(enrolledTerms);
   const section = course.section ? sectionLabels[course.section] : null;
 
+  const heroBreadcrumb = <HeroBreadcrumb section={section} title={course.title} />;
+
   if (course.is_external) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <Breadcrumb className="text-sm mb-4">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild><Link to="/vzdelavani">Vzdělávání</Link></BreadcrumbLink>
-            </BreadcrumbItem>
-            {section && (
-              <>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild><Link to={section.href}>{section.label}</Link></BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            )}
-            <BreadcrumbSeparator className="hidden sm:block" />
-            <BreadcrumbItem className="hidden sm:inline-flex"><BreadcrumbPage>{course.title}</BreadcrumbPage></BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+      <>
+        <PageHeader
+          fullWidth
+          title={course.title}
+          description={course.highlight}
+          imageUrl={courseImage || "/images/hero-classroom.jpg"}
+          breadcrumb={heroBreadcrumb}
+          badges={["Externí kurz", ...(course.tags || [])]}
+          className="-mt-6 mb-0"
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <h1 className="font-[family-name:var(--font-poppins)] font-extrabold text-3xl text-foreground tracking-tight mb-4">
-              {course.title}
-            </h1>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
 
-            <div className="flex flex-wrap gap-2">
-              <Badge className="bg-brand-light text-brand-primary border-0 font-semibold">Externí kurz</Badge>
-              {course.tags?.map((tag) => (
-                <Badge key={tag} className="bg-brand-light text-brand-primary border-0 font-semibold">{tag}</Badge>
-              ))}
+              {course.description && course.description.length > 0 && (
+                <div className="text-base leading-7 text-foreground/80 space-y-4">
+                  <PortableText value={course.description} />
+                </div>
+              )}
+
+              {course.target_audience && (
+                <div className="mt-6">
+                  <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
+                  <p className="text-foreground/80">{course.target_audience}</p>
+                </div>
+              )}
+
+              <LecturerCard lecturer={course.lecturer} photo={lecturerPhoto} />
             </div>
 
-            {courseImage && (
-              <img src={courseImage} alt={course.title} className="rounded-2xl overflow-hidden aspect-video object-cover w-full shadow-md my-6" />
-            )}
+            <div>
+              <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
+                <PriceDisplay price={course.price} />
+                <Separator className="my-4" />
+                <Button variant="primary" size="xl" className="w-full" asChild>
+                  <a href={course.external_url} target="_blank" rel="noopener noreferrer">
+                    Přejít na přihlášení
+                    <ExternalLink className="w-5 h-5 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
-            {course.highlight && (
-              <p className="text-lg text-muted-foreground">{course.highlight}</p>
-            )}
+  return (
+    <>
+      <PageHeader
+        fullWidth
+        title={course.title}
+        description={course.highlight}
+        imageUrl={courseImage || "/images/hero-classroom.jpg"}
+        breadcrumb={heroBreadcrumb}
+        badges={["Interní kurz", ...(course.tags || [])]}
+        className="-mt-6 mb-0"
+      />
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column */}
+          <div className="lg:col-span-2 pb-0 md:pb-[100px]">
 
             {course.description && course.description.length > 0 && (
-              <div className="text-base leading-7 space-y-4 text-foreground/80">
+              <div className="text-base leading-7 text-foreground/80 space-y-4">
                 <PortableText value={course.description} />
               </div>
             )}
 
             {course.target_audience && (
-              <div>
-                <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-2">Pro koho je kurz určen</h3>
+              <div className="mt-6">
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
                 <p className="text-foreground/80">{course.target_audience}</p>
               </div>
             )}
 
-            {course.lecturer && (
-              <div className="mt-8 bg-muted/40 rounded-2xl p-6 flex gap-4">
-                {lecturerPhoto ? (
-                  <img src={lecturerPhoto} alt={course.lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light" />
-                ) : (
-                  <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light">
-                    {course.lecturer.name[0]}
-                  </div>
-                )}
-                <div>
-                  <p className="font-[family-name:var(--font-poppins)] font-bold">{course.lecturer.name}</p>
-                  {course.lecturer.bio && (
-                    <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
-                  )}
-                  {course.lecturer.email && (
-                    <a href={`mailto:${course.lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-block">
-                      {course.lecturer.email}
-                    </a>
-                  )}
+            {course.benefits && course.benefits.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-3">Co získáte</h3>
+                <ul className="space-y-2 mt-3">
+                  {course.benefits.map((benefit, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-base text-foreground/80">
+                      <CheckCircle2 className="text-brand-primary mt-1 shrink-0" size={16} />
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {course.materials && course.materials.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-3">Materiály</h3>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {course.materials.map((material, idx) => (
+                    <Button key={idx} variant="outline" size="sm" asChild>
+                      <a href={material.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        {material.label}
+                      </a>
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}
+
+            <LecturerCard lecturer={course.lecturer} photo={lecturerPhoto} />
           </div>
 
+          {/* Right column — sticky sidebar */}
           <div>
             <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
-              <div className="font-[family-name:var(--font-poppins)] text-3xl font-extrabold text-brand-primary my-3">
-                {course.price === 0 ? "Zdarma" : course.price ? `${course.price} Kč` : null}
-              </div>
-              <Separator className="my-4" />
-              <Button className="w-full mt-5 bg-brand-accent hover:opacity-90 text-black font-bold rounded-xl py-3 text-base font-[family-name:var(--font-poppins)]" asChild>
-                <a href={course.external_url} target="_blank" rel="noopener noreferrer">
-                  Přejít na přihlášení
-                  <ExternalLink className="w-5 h-5 ml-2" />
-                </a>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <Breadcrumb className="text-sm mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild><Link to="/vzdelavani">Vzdělávání</Link></BreadcrumbLink>
-          </BreadcrumbItem>
-          {section && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild><Link to={section.href}>{section.label}</Link></BreadcrumbLink>
-              </BreadcrumbItem>
-            </>
-          )}
-          <BreadcrumbSeparator className="hidden sm:block" />
-          <BreadcrumbItem className="hidden sm:inline-flex"><BreadcrumbPage>{course.title}</BreadcrumbPage></BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column */}
-        <div className="lg:col-span-2">
-          <h1 className="font-[family-name:var(--font-poppins)] font-extrabold text-3xl text-foreground tracking-tight mb-4">
-            {course.title}
-          </h1>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Badge className="bg-brand-light text-brand-primary border-0 font-semibold">Interní kurz</Badge>
-            {course.tags?.map((tag) => (
-              <Badge key={tag} className="bg-brand-light text-brand-primary border-0 font-semibold">{tag}</Badge>
-            ))}
-          </div>
-
-          {courseImage && (
-            <img src={courseImage} alt={course.title} className="rounded-2xl overflow-hidden aspect-video object-cover w-full shadow-md my-6" />
-          )}
-
-          {course.highlight && (
-            <p className="text-lg text-muted-foreground mb-4">{course.highlight}</p>
-          )}
-
-          {course.description && course.description.length > 0 && (
-            <div className="text-base leading-7 space-y-4 text-foreground/80">
-              <PortableText value={course.description} />
-            </div>
-          )}
-
-          {course.target_audience && (
-            <div className="mt-6">
-              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-2">Pro koho je kurz určen</h3>
-              <p className="text-foreground/80">{course.target_audience}</p>
-            </div>
-          )}
-
-          {course.benefits && course.benefits.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-3">Co získáte</h3>
-              <ul className="space-y-2">
-                {course.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-foreground/80">
-                    <CheckCircle2 className="text-brand-primary mt-0.5 shrink-0" size={18} />
-                    {benefit}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {course.materials && course.materials.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-[family-name:var(--font-poppins)] font-bold mb-3">Materiály</h3>
-              <div className="flex flex-wrap gap-2">
-                {course.materials.map((material, idx) => (
-                  <a
-                    key={idx}
-                    href={material.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-brand-light-pale border border-brand-light text-brand-primary px-3 py-2 rounded-lg text-sm hover:bg-brand-light transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    {material.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {course.lecturer && (
-            <div className="mt-8 bg-muted/40 rounded-2xl p-6 flex gap-4">
-              {lecturerPhoto ? (
-                <img src={lecturerPhoto} alt={course.lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light" />
-              ) : (
-                <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light">
-                  {course.lecturer.name[0]}
+              {course.duration_minutes && (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Clock className="w-4 h-4" />
+                  <span>{formatDuration(course.duration_minutes)}</span>
                 </div>
               )}
-              <div>
-                <p className="font-[family-name:var(--font-poppins)] font-bold">{course.lecturer.name}</p>
-                {course.lecturer.bio && (
-                  <p className="text-sm text-muted-foreground mt-1">{course.lecturer.bio}</p>
-                )}
-                {course.lecturer.email && (
-                  <a href={`mailto:${course.lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-block">
-                    {course.lecturer.email}
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Right column — sticky sidebar */}
-        <div>
-          <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
-            {course.duration_minutes && (
-              <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                <Clock className="w-4 h-4" />
-                <span>{Math.floor(course.duration_minutes / 60)}h {course.duration_minutes % 60}min</span>
-              </div>
-            )}
+              <PriceDisplay price={course.price} />
 
-            {course.price !== undefined && (
-              <div className="font-[family-name:var(--font-poppins)] text-3xl font-extrabold text-brand-primary my-3">
-                {Number(course.price) === 0 || String(course.price).toLowerCase() === "zdarma"
-                  ? "Zdarma"
-                  : `${course.price} Kč`}
-              </div>
-            )}
+              <Separator className="my-4" />
 
-            <Separator className="my-4" />
-
-            {course.dates && course.dates.length > 0 && (
-              <div className="bg-brand-light-pale rounded-xl p-4 space-y-3">
-                <p className="font-[family-name:var(--font-poppins)] font-bold text-sm mb-2">Dostupné termíny</p>
-                {course.dates.map((date, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg space-y-3 ${enrolledSet.has(idx) ? "bg-brand-light/30 ring-1 ring-brand-primary/20" : ""}`}>
-                    <div className="space-y-1.5">
+              {course.dates && course.dates.length > 0 && (
+                <>
+                  <p className="font-[family-name:var(--font-poppins)] font-semibold text-base mb-3">Dostupné termíny</p>
+                  {course.dates.map((date, idx) => (
+                    <div
+                      key={idx}
+                      className={`rounded-xl border p-4 mb-3 space-y-2 ${
+                        enrolledSet.has(idx)
+                          ? "border-brand-primary bg-brand-light/20"
+                          : "border-border"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="text-brand-primary shrink-0" size={14} />
-                          <span>{format(new Date(date.date_start), "d. MMMM yyyy", { locale: cs })}</span>
-                        </div>
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">
+                          <Calendar className="text-brand-primary" size={14} />
+                          {safeFormatDate(date.date_start, "d. MMMM yyyy")}
+                        </span>
                         {enrolledSet.has(idx) && (
-                          <Badge className="bg-brand-light text-brand-primary border-0 font-semibold text-xs">Přihlášen</Badge>
+                          <Badge variant="brand-accent" size="sm">Přihlášen</Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="text-brand-primary shrink-0" size={14} />
-                        <span>{date.location}</span>
-                      </div>
+                      {date.location && (
+                        <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="text-brand-muted" size={14} />
+                          {date.location}
+                        </div>
+                      )}
                       {date.capacity && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="text-brand-primary shrink-0" size={14} />
-                          <span>Kapacita: {date.capacity}</span>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          <Users className="text-brand-muted" size={14} />
+                          Kapacita: {date.capacity}
                         </div>
                       )}
                       {date.note && (
-                        <p className="text-sm text-muted-foreground italic">{date.note}</p>
+                        <Badge variant="brand" size="sm">{date.note}</Badge>
                       )}
+                      <TermAction
+                        courseId={course._id}
+                        courseTitle={course.title}
+                        termIndex={idx}
+                        dateStart={date.date_start}
+                        location={date.location}
+                        isEnrolled={enrolledSet.has(idx)}
+                      />
                     </div>
-                    <TermAction
-                      courseId={course._id}
-                      courseTitle={course.title}
-                      termIndex={idx}
-                      dateStart={date.date_start}
-                      location={date.location}
-                      isEnrolled={enrolledSet.has(idx)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </>
+              )}
 
-            {(course.contact_name || course.contact_email) && (
-              <div className="border-t border-border mt-5 pt-5">
-                {course.contact_name && (
-                  <p className="font-semibold">{course.contact_name}</p>
-                )}
-                {course.contact_email && (
-                  <a href={`mailto:${course.contact_email}`} className="text-brand-primary text-sm">
-                    {course.contact_email}
-                  </a>
-                )}
-              </div>
-            )}
+              {(course.contact_name || course.contact_email) && (
+                <>
+                  <Separator className="my-4" />
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Kontakt</p>
+                  {course.contact_name && (
+                    <p className="font-semibold text-foreground">{course.contact_name}</p>
+                  )}
+                  {course.contact_email && (
+                    <a href={`mailto:${course.contact_email}`} className="text-brand-primary text-sm flex items-center gap-1.5 mt-1">
+                      <Mail size={14} />
+                      {course.contact_email}
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
