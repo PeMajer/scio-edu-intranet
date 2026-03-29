@@ -296,12 +296,13 @@ function LecturerCard({ lecturer, photo }: { lecturer: Course["lecturer"]; photo
   );
 }
 
-function PriceDisplay({ price }: { price?: number }) {
-  if (price === undefined) return null;
-  const isFree = Number(price) === 0 || String(price).toLowerCase() === "zdarma";
+function PriceDisplay({ price }: { price?: number | string }) {
+  if (price == null) return null;
+  const numericPrice = typeof price === "string" ? NaN : price;
+  const isFree = numericPrice === 0 || (typeof price === "string" && price.toLowerCase() === "zdarma");
   return (
     <div className={`font-[family-name:var(--font-poppins)] font-extrabold text-3xl mt-1 mb-4 ${isFree ? "text-brand-primary" : "text-foreground"}`}>
-      {isFree ? "Zdarma" : `${price} Kč`}
+      {isFree ? "Zdarma" : typeof price === "number" ? `${price} Kč` : String(price)}
     </div>
   );
 }

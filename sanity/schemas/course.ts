@@ -122,8 +122,8 @@ export const course = {
     {
       name: 'price',
       title: 'Cena',
-      type: 'string',
-      description: 'Např. "zdarma", "500 Kč", "hradí zaměstnavatel"',
+      type: 'number',
+      description: 'Částka v Kč (0 = zdarma). Jednotka "Kč" se doplní automaticky.',
     },
     { name: 'lecturer', title: 'Lektor', type: 'reference', to: [{ type: 'lecturer' }] },
     { name: 'contact_name', title: 'Kontaktní osoba', type: 'string' },
