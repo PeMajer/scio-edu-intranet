@@ -9,5 +9,5 @@ GOOGLE_CALENDAR_ID = ""
 
 [[kv_namespaces]]
 binding = "SESSION_KV"
-id = "session_storage"
-preview_id = "preview_session_storage"
+id = "f184deda13d2456987a863d04eeb0a2e"                                                                                                                                                                                    
+preview_id = "f184deda13d2456987a863d04eeb0a2e" 
