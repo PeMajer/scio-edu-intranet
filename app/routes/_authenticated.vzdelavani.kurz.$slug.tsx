@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "~/components/ui/dialog";
-import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { PortableText } from "@portabletext/react";
@@ -488,7 +488,7 @@ export default function KurzDetail() {
                           const remaining = date.capacity - enrolled;
                           return (
                             <div className={`text-sm flex items-center gap-1.5 ${remaining === 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                              <Users className={remaining === 0 ? "text-destructive" : "text-brand-muted"} size={14} />
+                              {remaining === 0 ? <AlertCircle className="text-red-500" size={14} /> : <Users className="text-muted-foreground" size={14} />}
                               {remaining === 0 ? "Obsazeno" : `${remaining} z ${date.capacity} volných míst`}
                             </div>
                           );

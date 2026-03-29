@@ -13,12 +13,12 @@ import { EventList } from "~/components/event-list";
 import {
   BookOpen,
   FileText,
-  Calendar,
+  CalendarDays,
   ArrowRight,
   GraduationCap,
   Users,
-  Compass,
   Sparkles,
+  BookMarked,
 } from "lucide-react";
 import type { CalendarEvent } from "~/lib/types";
 
@@ -52,7 +52,7 @@ const quickLinks = [
     label: "Pro nováčky",
     desc: "Úvod do ScioPolis a základní kurzy",
     href: "/vzdelavani/novacek",
-    icon: Compass,
+    icon: GraduationCap,
     color: "from-primary to-primary/80",
     image: "/images/hero-classroom.jpg",
   },
@@ -76,7 +76,7 @@ const quickLinks = [
     label: "Moje kurzy",
     desc: "Vaše přihlášené a absolvované kurzy",
     href: "/moje-kurzy",
-    icon: GraduationCap,
+    icon: BookMarked,
     color: "from-primary to-primary/80",
     image: "/images/hero-discussion.jpg",
   },
@@ -148,7 +148,7 @@ export default function Portal() {
         <div className="space-y-6">
           {/* Calendar widget */}
           <Card className="p-5">
-            <SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
+            <SectionHeader icon={CalendarDays} title="Nadcházející události" className="mb-4" />
             <EventList events={upcomingEvents as CalendarEvent[]} limit={3} />
             <Button
               variant="outline"
@@ -156,7 +156,7 @@ export default function Portal() {
               className="w-full mt-4"
             >
               <Link to="/kalendar">
-                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
                 Celý kalendář
               </Link>
             </Button>

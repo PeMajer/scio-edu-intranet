@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "~/components/ui/dialog";
-import { ChevronDown, ChevronUp, ChevronsUpDown, Settings2, Filter, X, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, Columns3, SlidersHorizontal, X, Trash2 } from "lucide-react";
 import { FilterChip } from "~/components/filter-chip";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -389,10 +389,10 @@ export default function Admin() {
               className={`flex items-center gap-1.5 ${hasActiveFilters ? 'text-brand-primary' : 'text-muted-foreground'}`}
               onClick={() => { setFilterMenuOpen((v) => !v); setColMenuOpen(false); }}
             >
-              <Filter size={16} />
+              <SlidersHorizontal size={16} />
               Filtry
               {hasActiveFilters && (
-                <span className="bg-brand-accent text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="bg-brand-accent text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {[filterCourse, filterSection, filterPeriod, filterStatus].filter(Boolean).length}
                 </span>
               )}
@@ -467,7 +467,7 @@ export default function Admin() {
               className="flex items-center gap-1.5 text-muted-foreground"
               onClick={() => { setColMenuOpen((v) => !v); setFilterMenuOpen(false); }}
             >
-              <Settings2 size={16} />
+              <Columns3 size={16} />
               Sloupce
             </Button>
             {colMenuOpen && (
@@ -568,7 +568,7 @@ export default function Admin() {
                     <div className="flex flex-col items-center gap-2">
                       {hasActiveFilters ? (
                         <>
-                          <Filter size={32} className="text-muted-foreground/40" />
+                          <SlidersHorizontal size={32} className="text-muted-foreground/40" />
                           <p className="text-muted-foreground font-medium">Žádné přihlášky neodpovídají filtru</p>
                           <button
                             onClick={clearFilters}

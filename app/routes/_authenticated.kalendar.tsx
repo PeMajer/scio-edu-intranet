@@ -17,7 +17,7 @@ import {
   startOfDay,
 } from "date-fns";
 import { cs } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, X, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Calendar, CalendarDays } from "lucide-react";
 import { EmptyState } from "~/components/empty-state";
 import { requireAuth } from "~/lib/supabase.server";
 import { fetchCalendarEvents } from "~/lib/google-calendar.server";
@@ -251,7 +251,7 @@ export default function Kalendar() {
         {/* Upcoming events sidebar (1/3) */}
         <div>
           <Card className="p-5">
-            <SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
+            <SectionHeader icon={CalendarDays} title="Nadcházející události" className="mb-4" />
             <EventList events={upcomingEvents as CalendarEvent[]} limit={8} />
           </Card>
         </div>

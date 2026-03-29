@@ -3,7 +3,7 @@ import { requireAuth } from "~/lib/supabase.server";
 import { PageHeader } from "~/components/layout/page-header";
 import { HighlightBox } from "~/components/highlight-box";
 import { SectionHeader } from "~/components/layout/section-header";
-import { FileText, Headphones, BookOpen, ExternalLink, Info } from "lucide-react";
+import { FileText, Headphones, BookMarked, ExternalLink, Info } from "lucide-react";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
@@ -24,7 +24,7 @@ const resources = [
   {
     type: "methodological",
     title: "Metodické balíky",
-    icon: BookOpen,
+    icon: BookMarked,
     image: "/images/hero-learning.jpg",
     items: [
       { label: "Metodický balík pro nováčky", url: "#" },
