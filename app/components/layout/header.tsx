@@ -243,9 +243,9 @@ function UserMenu({ user, profile }: HeaderProps) {
         )}
         <DropdownMenuItem
           onSelect={() => submit(null, { method: "post", action: "/auth/logout" })}
-          className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+          className="group/logout rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
         >
-          <LogOut size={16} />
+          <LogOut size={16} className="group-hover/logout:text-red-600 group-focus/logout:text-red-600" />
           Odhlásit se
         </DropdownMenuItem>
       </DropdownMenuContent>
