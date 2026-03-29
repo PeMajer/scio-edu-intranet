@@ -36,13 +36,13 @@ export type Course = {
   }>;
   duration_minutes?: number;
   price?: number;
-  lecturer?: {
+  lecturers?: Array<{
     _id: string;
     name: string;
     photo?: any;
     bio?: string;
     email?: string;
-  };
+  }>;
   contact_name?: string;
   contact_email?: string;
   image?: any;

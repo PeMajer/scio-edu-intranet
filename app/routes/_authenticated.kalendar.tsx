@@ -17,14 +17,15 @@ import {
   startOfDay,
 } from "date-fns";
 import { cs } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, ExternalLink, MapPin, X, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Calendar, CalendarDays } from "lucide-react";
+import { EmptyState } from "~/components/empty-state";
 import { requireAuth } from "~/lib/supabase.server";
 import { fetchCalendarEvents } from "~/lib/google-calendar.server";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
 import { SectionHeader } from "~/components/layout/section-header";
 import { PageHeader } from "~/components/layout/page-header";
+import { EventList } from "~/components/event-list";
 import { cn } from "~/lib/cn";
 import type { CalendarEvent } from "~/lib/types";
 
@@ -75,6 +76,13 @@ export default function Kalendar() {
     .filter((e) => !getEventStart(e).valueOf() || getEventStart(e) >= startOfDay(today))
     .sort((a, b) => getEventStart(a).getTime() - getEventStart(b).getTime());
 
+  const monthEvents = (events as CalendarEvent[])
+    .filter((e) => {
+      const d = getEventStart(e);
+      return d >= monthStart && d <= monthEnd;
+    })
+    .sort((a, b) => getEventStart(a).getTime() - getEventStart(b).getTime());
+
   function eventsOnDay(day: Date): CalendarEvent[] {
     return (events as CalendarEvent[]).filter((e) => isSameDay(getEventStart(e), day));
   }
@@ -95,7 +103,7 @@ export default function Kalendar() {
 
   return (
     <>
-      <PageHeader title="Kalendář" description="Přehled vzdělávacích akcí a školení" imageUrl="/images/hero-workshop.jpg" />
+      <PageHeader fullWidth title="Kalendář" description="Přehled vzdělávacích akcí a školení" imageUrl="/images/hero-workshop.jpg" className="-mt-6 mb-8" />
 
       {calendarError && (
         <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -104,9 +112,38 @@ export default function Kalendar() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Calendar grid (2/3) */}
+        {/* Calendar grid (2/3) — desktop only */}
         <div className="lg:col-span-2">
-          <Card>
+          {/* Mobile: month list */}
+          <Card className="md:hidden p-5">
+            <div className="flex items-center justify-between mb-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMonth((m) => subMonths(m, 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="font-[family-name:var(--font-poppins)] font-bold text-lg capitalize">
+                {format(viewMonth, "LLLL yyyy", { locale: cs })}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMonth((m) => addMonths(m, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            {monthEvents.length === 0 ? (
+              <EmptyState icon={Calendar} message="Žádné události v tomto měsíci" />
+            ) : (
+              <EventList events={monthEvents as CalendarEvent[]} />
+            )}
+          </Card>
+
+          {/* Desktop: calendar grid */}
+          <Card className="hidden md:block">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <Button
@@ -116,7 +153,7 @@ export default function Kalendar() {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h2 className="text-lg font-semibold capitalize">
+                <h2 className="font-[family-name:var(--font-poppins)] font-bold text-lg capitalize">
                   {format(viewMonth, "LLLL yyyy", { locale: cs })}
                 </h2>
                 <Button
@@ -147,26 +184,36 @@ export default function Kalendar() {
                       key={day.toISOString()}
                       onClick={() => handleDayClick(day, dayEvents)}
                       className={cn(
-                        "min-h-[80px] rounded-md p-1 flex flex-col",
+                        "min-h-[80px] rounded-xl p-1 flex flex-col border-2",
                         outsideMonth && "opacity-30",
-                        isToday(day) && "ring-2 ring-ring bg-primary/10",
-                        isSelected && "bg-primary/20 ring-2 ring-ring",
-                        hasEvents && !outsideMonth && "cursor-pointer hover:bg-primary/10 transition-colors"
+                        isSelected && "bg-brand-light-pale",
+                        !isSelected && hasEvents && !outsideMonth && "cursor-pointer hover:bg-brand-light-hover transition-colors"
                       )}
+                      style={{ borderColor: isSelected ? 'var(--color-scioedu-primary)' : 'hsl(var(--border) / 0.6)' }}
                     >
-                      <span
-                        className={cn(
-                          "text-xs font-medium self-end mb-1",
-                          isToday(day) || isSelected ? "text-primary" : "text-muted-foreground"
+                      <div className="self-end mb-1">
+                        {isToday(day) ? (
+                          <span className="bg-brand-accent text-black font-bold rounded-full w-7 h-7 flex items-center justify-center text-xs">
+                            {format(day, "d")}
+                          </span>
+                        ) : isSelected ? (
+                          <span className="bg-brand-primary text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-xs">
+                            {format(day, "d")}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-medium w-7 h-7 flex items-center justify-center text-muted-foreground">
+                            {format(day, "d")}
+                          </span>
                         )}
-                      >
-                        {format(day, "d")}
-                      </span>
+                      </div>
                       <div className="flex flex-col gap-0.5">
                         {dayEvents.slice(0, 2).map((e) => (
                           <span
                             key={e.id}
-                            className="block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium bg-primary/15 text-primary"
+                            className={cn(
+                              "block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium",
+                              isToday(day) ? "bg-white/80 text-brand-primary" : "bg-brand-light-pale text-brand-primary"
+                            )}
                             title={e.summary}
                           >
                             {e.summary}
@@ -182,28 +229,19 @@ export default function Kalendar() {
               </div>
 
               {selectedDay && selectedDayEvents.length > 0 && (
-                <div className="mt-4 border-t pt-4">
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-foreground">
+                    <h3 className="font-[family-name:var(--font-poppins)] font-bold text-base capitalize">
                       {format(selectedDay, "EEEE d. MMMM", { locale: cs })}
                     </h3>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
+                    <button
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1"
                       onClick={() => setSelectedDay(null)}
                     >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                  <div className="space-y-0">
-                    {selectedDayEvents.map((event, index) => (
-                      <div key={event.id}>
-                        {index > 0 && <Separator className="my-3" />}
-                        <EventItem event={event} />
-                      </div>
-                    ))}
-                  </div>
+                  <EventList events={selectedDayEvents as CalendarEvent[]} />
                 </div>
               )}
             </CardContent>
@@ -212,76 +250,12 @@ export default function Kalendar() {
 
         {/* Upcoming events sidebar (1/3) */}
         <div>
-          <Card>
-            <div className="p-5">
-              <SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
-              {upcomingEvents.length === 0 && !calendarError ? (
-                <div className="text-center py-6">
-                  <Calendar className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-muted-foreground text-sm">Žádné nadcházející události</p>
-                </div>
-              ) : (
-                <div className="space-y-0">
-                  {upcomingEvents.slice(0, 8).map((event, index) => (
-                    <div key={event.id}>
-                      {index > 0 && <Separator className="my-3" />}
-                      <EventItem event={event} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          <Card className="p-5">
+            <SectionHeader icon={CalendarDays} title="Nadcházející události" className="mb-4" />
+            <EventList events={upcomingEvents as CalendarEvent[]} limit={8} />
           </Card>
         </div>
       </div>
     </>
-  );
-}
-
-function EventItem({ event }: { event: CalendarEvent }) {
-  const start = getEventStart(event);
-  return (
-    <div className="flex gap-3">
-      {/* Date pill */}
-      <div className="flex flex-col items-center shrink-0 w-12">
-        <span className="text-xs font-medium text-primary uppercase">
-          {format(start, "MMM", { locale: cs })}
-        </span>
-        <span className="text-xl font-bold text-foreground leading-tight">
-          {format(start, "d")}
-        </span>
-      </div>
-      {/* Event info */}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground leading-snug">
-          {event.summary}
-        </p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-          {!isAllDay(event) && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {format(start, "H:mm", { locale: cs })}
-            </span>
-          )}
-          {event.location && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate max-w-[120px]">{event.location}</span>
-            </span>
-          )}
-          {event.htmlLink && (
-            <a
-              href={event.htmlLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Google
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

@@ -9,6 +9,8 @@ import type { LinksFunction } from "@remix-run/cloudflare";
 import stylesheet from "~/tailwind.css?url";
 
 export const links: LinksFunction = () => [
+  { rel: "icon", type: "image/png", href: "/favicon.png" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
   { rel: "stylesheet", href: stylesheet },
@@ -25,7 +27,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-background font-body antialiased">
+      <body className="min-h-screen bg-background font-body antialiased" suppressHydrationWarning>
         {children}
         <ScrollRestoration />
         <Scripts />
