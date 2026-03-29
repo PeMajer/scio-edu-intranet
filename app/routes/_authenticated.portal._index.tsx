@@ -138,7 +138,7 @@ export default function Portal() {
                 Prohlédněte si kompletní nabídku vzdělávacích programů
               </p>
             </div>
-            <Button variant="primary" className="shrink-0" asChild>
+            <Button variant="primary" className="shrink-0 w-full sm:w-auto" asChild>
               <Link to="/vzdelavani">Prohlédnout kurzy</Link>
             </Button>
           </HighlightBox>

@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { cs } from "date-fns/locale";
-import { Calendar, Clock, ExternalLink, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import { EmptyState } from "~/components/empty-state";
 import type { CalendarEvent } from "~/lib/types";
 
@@ -44,17 +44,6 @@ export function EventList({ events, limit }: EventListProps) {
                     <MapPin className="w-3 h-3" />
                     <span className="truncate max-w-[120px]">{event.location}</span>
                   </span>
-                )}
-                {event.htmlLink && (
-                  <a
-                    href={event.htmlLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-brand-primary transition-colors flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Google
-                  </a>
                 )}
               </div>
             </div>

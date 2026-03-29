@@ -111,7 +111,7 @@ export default function Index() {
                   <Logo size="lg" variant="white" />
                   <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight">
                     Vzdělávání pro pedagogickou praxi{" "}
-                    <span className="text-secondary">21. století</span>
+                    <span className="text-secondary">21.{"\u00A0"}století</span>
                   </h1>
                   <p className="text-lg text-white/80 max-w-xl leading-relaxed">
                     Interní portál pro zaměstnance ScioPolis. Ucelené vzdělávací
@@ -193,18 +193,6 @@ export default function Index() {
                   </div>
 
                   <div className="space-y-3 text-center text-sm text-muted-foreground">
-                    <p>
-                      Jste z rodiny{" "}
-                      <a
-                        href="https://scioedu.cz"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        ScioEdu
-                      </a>
-                      ?
-                    </p>
                     <p className="text-xs">
                       Přístup je povolen pouze s emailovou adresou @scioskola.cz
                     </p>

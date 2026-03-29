@@ -91,13 +91,12 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
               to={category.href}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 py-2.5 text-sm transition-colors cursor-pointer",
+                  "relative flex items-center gap-3 py-2.5 text-sm transition-colors cursor-pointer px-3",
                   isActive
-                    ? "border-l-[3px] bg-brand-light/20 text-brand-primary font-semibold pl-[calc(0.75rem-3px)] pr-3"
-                    : "rounded-xl text-foreground hover:bg-brand-light/40 hover:text-brand-primary font-medium px-3"
+                    ? "bg-brand-light/20 text-brand-primary font-semibold before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:rounded-full before:bg-[var(--color-scioedu-accent)]"
+                    : "rounded-xl text-foreground hover:bg-brand-light/40 hover:text-brand-primary font-medium"
                 )
               }
-              style={({ isActive }) => isActive ? { borderLeftColor: 'var(--color-scioedu-accent)' } : undefined}
             >
               <Icon size={16} className="text-brand-primary" />
               {category.title}
