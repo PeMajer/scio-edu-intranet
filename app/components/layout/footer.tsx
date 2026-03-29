@@ -16,7 +16,7 @@ export function Footer() {
               scioedu.cz
             </a>
             <span aria-hidden="true">|</span>
-            <span>&copy; {new Date().getFullYear()} ScioPolis</span>
+            <span suppressHydrationWarning>&copy; {new Date().getFullYear()} ScioPolis</span>
           </div>
         </div>
       </div>

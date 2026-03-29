@@ -20,7 +20,7 @@ import {
 import { ChevronDown, ChevronUp, ChevronsUpDown, Columns3, Download, SlidersHorizontal, X, Trash2 } from "lucide-react";
 import { FilterChip } from "~/components/filter-chip";
 import { format } from "date-fns";
-import { cs } from "date-fns/locale";
+import { formatPrague } from "~/lib/format-date";
 import type { Course } from "~/lib/sanity.server";
 
 const sectionLabels: Record<string, string> = {
@@ -158,7 +158,7 @@ function safeFormatDate(value: string | undefined | null): string {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d.getTime())) return "—";
-  return format(d, "d. M. yyyy", { locale: cs });
+  return formatPrague(d, "d. M. yyyy");
 }
 
 function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: SortKey | null; sortDir: SortDir }) {

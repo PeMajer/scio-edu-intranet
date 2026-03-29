@@ -43,6 +43,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
     "isbot": "^5.1.17",
     "lucide-react": "^0.446.0",
     "radix-ui": "^1.4.3",
