@@ -394,7 +394,7 @@ export default function KurzDetail() {
       <div className="container mx-auto max-w-7xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column */}
-          <div className="lg:col-span-2 pb-0 md:pb-[100px]">
+          <div className="lg:col-span-2 pb-0 lg:pb-[100px]">
 
             {course.description && course.description.length > 0 && (
               <div className="text-base leading-7 text-foreground/80 space-y-4">
