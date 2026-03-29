@@ -15,7 +15,7 @@ import {
 import { PageHeader } from "~/components/layout/page-header";
 import { Badge } from "~/components/ui/badge";
 import { ArrowRight, Calendar, GraduationCap, MapPin } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { cs } from "date-fns/locale";
 import type { Enrollment } from "~/lib/types";
 import type { Course } from "~/lib/sanity.server";
@@ -120,7 +120,7 @@ function CancelButton({ enrollmentId, courseTitle, termDate, termLocation }: {
           <div className="space-y-2">
             <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
             {termDate && (
-              <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(new Date(termDate), "d. MMMM yyyy", { locale: cs })}</span></p>
+              <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{format(parseISO(termDate), "d. MMMM yyyy", { locale: cs })}</span></p>
             )}
             {termLocation && (
               <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{termLocation}</span></p>
@@ -213,7 +213,7 @@ export default function MojeKurzy() {
                       {termDate && (
                         <span className="flex items-center gap-1.5">
                           <Calendar className="text-brand-primary" size={14} />
-                          {format(new Date(termDate), "d. MMMM yyyy", { locale: cs })}
+                          {format(parseISO(termDate), "d. MMMM yyyy", { locale: cs })}
                         </span>
                       )}
                       {termLocation && (

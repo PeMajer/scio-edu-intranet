@@ -47,7 +47,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     calendarError = "Nepodařilo se načíst kalendář. Zkuste to prosím znovu.";
   }
 
-  return json({ events, calendarError }, { headers });
+  return json({ events, calendarError, serverDate: new Date().toISOString() }, { headers });
 }
 
 function getEventStart(event: CalendarEvent): Date {
@@ -61,8 +61,8 @@ function isAllDay(event: CalendarEvent): boolean {
 const DAY_HEADERS = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];
 
 export default function Kalendar() {
-  const { events, calendarError } = useLoaderData<typeof loader>();
-  const [viewMonth, setViewMonth] = useState(() => new Date());
+  const { events, calendarError, serverDate } = useLoaderData<typeof loader>();
+  const [viewMonth, setViewMonth] = useState(() => parseISO(serverDate));
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   const monthStart = startOfMonth(viewMonth);
@@ -71,7 +71,7 @@ export default function Kalendar() {
   const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const gridDays = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
-  const today = new Date();
+  const today = parseISO(serverDate);
   const upcomingEvents = (events as CalendarEvent[])
     .filter((e) => !getEventStart(e).valueOf() || getEventStart(e) >= startOfDay(today))
     .sort((a, b) => getEventStart(a).getTime() - getEventStart(b).getTime());
