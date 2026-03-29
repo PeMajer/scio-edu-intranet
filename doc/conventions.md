@@ -99,7 +99,7 @@ Rozšířená shadcn Badge s brand variantami a velikostmi. Brand varianty NEMAJ
 
 | Varianta | Použití | Styl |
 |---|---|---|
-| `brand` | Informační štítek (poznámka termínu) | `bg-brand-light text-brand-primary` |
+| `brand` | Informační štítek (poznámka termínu, kategorie) | `bg-brand-light-pale text-brand-primary` |
 | `brand-accent` | Výrazný štítek (hero tagy, Přihlášen) | `bg-brand-accent text-black font-bold` |
 | `brand-success` | Úspěšný stav | `bg-brand-light text-brand-primary font-bold` |
 
