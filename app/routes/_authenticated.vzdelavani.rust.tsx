@@ -1,13 +1,20 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
 import { SectionHeader } from "~/components/layout/section-header";
-import { CourseCard } from "~/components/course-card";
-import { Card } from "~/components/ui/card";
-import { Separator } from "~/components/ui/separator";
-import { Target, Wrench, Sparkles, ExternalLink, Link2 } from "lucide-react";
+import { CourseGrid } from "~/components/course-grid";
+import { ResourcesCard } from "~/components/resources-card";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
+import { Target, Wrench, Sparkles } from "lucide-react";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
 
@@ -65,13 +72,26 @@ export default function VzdelavaniRust() {
   return (
     <>
       <PageHeader
+        fullWidth
         title="Vzdělávání a růst pro každého"
         description="Kurzy zaměřené na osobní rozvoj a odborné dovednosti"
         imageUrl={coverImageUrl || "/images/hero-learning.jpg"}
-        breadcrumbs={[
-          { label: "Vzdělávání", href: "/vzdelavani" },
-          { label: "Osobní růst" },
-        ]}
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
+                  <Link to="/vzdelavani">Vzdělávání</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/40" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white/80 font-medium">Osobní růst</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+        className="-mt-6 mb-8"
       />
 
       {introText && (
@@ -81,62 +101,20 @@ export default function VzdelavaniRust() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Kurzy (2/3) */}
         <div className="lg:col-span-2 space-y-10">
           {Object.entries(subsectionConfig).map(([key, config]) => {
             const courses = subsections[key as keyof typeof subsections];
             return (
               <section key={key}>
                 <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
-                {courses.length === 0 ? (
-                  <p className="text-muted-foreground text-sm py-4">
-                    Momentálně nejsou k dispozici žádné kurzy
-                  </p>
-                ) : (
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    {courses.map((course) => (
-                      <CourseCard
-                        key={course._id}
-                        title={course.title}
-                        slug={course.slug.current}
-                        highlight={course.highlight}
-                        price={course.price}
-                        isExternal={course.is_external}
-                        imageUrl={course.imageUrl}
-                      />
-                    ))}
-                  </div>
-                )}
+                <CourseGrid courses={courses} />
               </section>
             );
           })}
         </div>
 
-        {/* Sidebar (1/3) */}
         <div className="space-y-6">
-          {resources.length > 0 && (
-            <Card>
-              <div className="p-5">
-                <SectionHeader icon={Link2} title="Materiály a odkazy" className="mb-4" />
-                <div className="space-y-0">
-                  {resources.map((resource, i) => (
-                    <div key={i}>
-                      {i > 0 && <Separator className="my-2" />}
-                      <a
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between gap-2 py-2 text-sm text-foreground hover:text-primary transition-colors group"
-                      >
-                        <span>{resource.label}</span>
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          )}
+          <ResourcesCard resources={resources} />
         </div>
       </div>
     </>

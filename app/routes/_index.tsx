@@ -171,9 +171,9 @@ export default function Index() {
                     <input type="hidden" name="action" value="google-login" />
                     <Button
                       type="submit"
-                      variant="accent"
-                      size="lg"
-                      className="w-full text-base font-semibold h-12 rounded-xl"
+                      variant="primary"
+                      size="xl"
+                      className="w-full"
                       disabled={!loaderData?.supabaseConfigured}
                     >
                       <LogIn className="w-5 h-5 mr-2" />

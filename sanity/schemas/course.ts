@@ -73,8 +73,18 @@ export const course = {
           type: 'object',
           name: 'courseTerm',
           fields: [
-            { name: 'date_start', title: 'Začátek', type: 'datetime' },
-            { name: 'date_end', title: 'Konec', type: 'datetime' },
+            {
+              name: 'date_start',
+              title: 'Začátek',
+              type: 'datetime',
+              options: { dateFormat: 'DD.MM.YYYY', timeFormat: 'HH:mm', timeStep: 15 },
+            },
+            {
+              name: 'date_end',
+              title: 'Konec',
+              type: 'datetime',
+              options: { dateFormat: 'DD.MM.YYYY', timeFormat: 'HH:mm', timeStep: 15 },
+            },
             { name: 'location', title: 'Místo konání', type: 'string' },
             { name: 'capacity', title: 'Kapacita', type: 'number' },
             {
@@ -85,7 +95,24 @@ export const course = {
             },
           ],
           preview: {
-            select: { title: 'date_start', subtitle: 'location' },
+            select: { start: 'date_start', end: 'date_end', location: 'location', capacity: 'capacity', note: 'note' },
+            prepare({ start, end, location, capacity, note }: { start?: string; end?: string; location?: string; capacity?: number; note?: string }) {
+              const fmt = (v?: string) => {
+                if (!v) return null;
+                const d = new Date(v);
+                return isNaN(d.getTime()) ? null : d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+              };
+              const startFmt = fmt(start);
+              const endFmt = fmt(end);
+              const title = startFmt && endFmt
+                ? `${startFmt} – ${endFmt}`
+                : startFmt || 'Datum neuvedeno';
+              const parts = [location, capacity ? `${capacity} míst` : null, note].filter(Boolean);
+              return {
+                title,
+                subtitle: parts.join(' · ') || '',
+              };
+            },
           },
         },
       ],
@@ -95,10 +122,15 @@ export const course = {
     {
       name: 'price',
       title: 'Cena',
-      type: 'string',
-      description: 'Např. "zdarma", "500 Kč", "hradí zaměstnavatel"',
+      type: 'number',
+      description: 'Částka v Kč (0 = zdarma). Jednotka "Kč" se doplní automaticky.',
     },
-    { name: 'lecturer', title: 'Lektor', type: 'reference', to: [{ type: 'lecturer' }] },
+    {
+      name: 'lecturers',
+      title: 'Lektoři',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'lecturer' }] }],
+    },
     { name: 'contact_name', title: 'Kontaktní osoba', type: 'string' },
     { name: 'contact_email', title: 'Kontaktní e-mail', type: 'string' },
     { name: 'image', title: 'Obrázek kurzu', type: 'image', options: { hotspot: true } },

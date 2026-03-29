@@ -1,9 +1,10 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
-import { ArrowRight, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
+import { CourseCard } from "~/components/course-card";
+import { GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 
 const sectionMeta: Record<
   string,
@@ -80,46 +81,25 @@ export default function VzdelavaniIndex() {
   return (
     <>
       <PageHeader
+        fullWidth
         title="Vzdělávání"
         description="Vyberte si z našich vzdělávacích kategorií"
         imageUrl="/images/hero-classroom.jpg"
+        className="-mt-6 mb-8"
       />
 
       <div className="grid md:grid-cols-2 gap-6">
-        {visibleCategories.map((category) => {
-          const Icon = category.icon;
-          const image = sectionImages[category.key] || category.fallbackImage;
-          return (
-            <Link
-              key={category.key}
-              to={category.href}
-              className="group relative overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all"
-            >
-              <div className="h-44 relative overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                  style={{ backgroundImage: `url('${image}')` }}
-                />
-                <div className={`absolute inset-0 bg-gradient-to-t ${category.gradient} opacity-60`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-bold text-white text-lg drop-shadow-md">
-                    {category.title}
-                  </h3>
-                </div>
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  {category.description}
-                </p>
-                <ArrowRight className="w-5 h-5 text-muted-foreground/40 shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-              </div>
-            </Link>
-          );
-        })}
+        {visibleCategories.map((category) => (
+          <CourseCard
+            key={category.key}
+            href={category.href}
+            title={category.title}
+            highlight={category.description}
+            imageUrl={sectionImages[category.key] || category.fallbackImage}
+            icon={category.icon}
+            height="h-[220px] sm:h-[280px]"
+          />
+        ))}
       </div>
     </>
   );

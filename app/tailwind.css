@@ -78,7 +78,9 @@
   --font-roboto: 'Roboto', sans-serif;
 
   --color-scioedu-primary: #1DA2AC;
+  --color-scioedu-primary-hover: #189aa4;
   --color-scioedu-accent: #FCB813;
+  --color-scioedu-accent-hover: #e8a50f;
   --color-scioedu-muted: #687A7C;
   --color-scioedu-light: #BADEDF;
   --color-scioedu-bg: #F5F7F8;
@@ -150,4 +152,49 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-label {
   font-family: var(--font-roboto);
+}
+
+@utility bg-brand-primary { background-color: var(--color-scioedu-primary); }
+@utility text-brand-primary { color: var(--color-scioedu-primary); }
+@utility border-brand-primary { border-color: var(--color-scioedu-primary); }
+@utility bg-brand-accent { background-color: var(--color-scioedu-accent); }
+@utility text-brand-accent { color: var(--color-scioedu-accent); }
+@utility bg-brand-light { background-color: var(--color-scioedu-light); }
+@utility text-brand-muted { color: var(--color-scioedu-muted); }
+@utility bg-brand-primary-hover { background-color: var(--color-scioedu-primary-hover); }
+@utility bg-brand-accent-hover { background-color: var(--color-scioedu-accent-hover); }
+@utility bg-brand-light-pale { background-color: color-mix(in srgb, var(--color-scioedu-light) 30%, white); }
+@utility bg-brand-light-hover { background-color: color-mix(in srgb, var(--color-scioedu-light) 40%, white); }
+
+/*
+ * Form focus styles — brand-consistent ring for native selects & Radix triggers
+ */
+select:focus,
+[data-radix-select-trigger]:focus {
+  outline: none;
+  border-color: var(--color-scioedu-primary) !important;
+  box-shadow: 0 0 0 2px var(--color-scioedu-primary);
+}
+
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  -webkit-overflow-scrolling: auto;
+}
+/* Force non-overlay scrollbar on WebKit (macOS) */
+.scrollbar-visible::-webkit-scrollbar {
+  -webkit-appearance: none;
+  height: 10px;
+}
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.15);
+  border-radius: 5px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 5px;
+  min-width: 40px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted) / 0.6);
 }

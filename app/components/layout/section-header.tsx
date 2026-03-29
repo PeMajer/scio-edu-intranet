@@ -10,10 +10,10 @@ interface SectionHeaderProps {
 export function SectionHeader({ icon: Icon, title, className }: SectionHeaderProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-        <Icon className="w-4 h-4 text-primary" />
+      <div className="w-8 h-8 rounded-lg bg-brand-light-pale flex items-center justify-center">
+        <Icon className="w-4 h-4 text-brand-primary" />
       </div>
-      <h3 className="font-semibold text-sm">{title}</h3>
+      <h3 className="font-[family-name:var(--font-poppins)] font-bold text-2xl text-foreground">{title}</h3>
     </div>
   );
 }

@@ -249,11 +249,11 @@ export default {
 
     // Logistika (sdílené pro všechny termíny)
     { name: 'duration_minutes', title: 'Délka (minuty)', type: 'number' },
-    { name: 'price', title: 'Cena', type: 'string',
-      description: 'Např. "zdarma", "500 Kč", "hradí zaměstnavatel"' },
+    { name: 'price', title: 'Cena', type: 'number',
+      description: 'Cena v Kč (0 = zdarma). Frontend formátuje jako "Zdarma" / "1 200 Kč"' },
 
-    // Lektor
-    { name: 'lecturer', title: 'Lektor', type: 'reference', to: [{ type: 'lecturer' }] },
+    // Lektoři (pole referencí — kurz může mít více lektorů)
+    { name: 'lecturers', title: 'Lektoři', type: 'array', of: [{ type: 'reference', to: [{ type: 'lecturer' }] }] },
 
     // Kontakt
     { name: 'contact_name', title: 'Kontaktní osoba', type: 'string' },
@@ -723,8 +723,8 @@ Build an internal company intranet called "ScioEdu" for the ScioPolis organizati
    - cesty: hidden placeholder structured as ScioCíl → Documents → Didaktika → Kurzy
 
 4. `/vzdelavani/kurz/$slug` — Course detail page. Two variants based on is_external flag:
-   - Internal course (is_external=false): title, highlight, target audience, benefits list, multiple terms (dates/location/capacity picker), price, duration, enroll button (Dialog with term selection), lecturer card (photo + bio), organizer contact, materials (Google Drive links)
-   - External course (is_external=true): shortened detail with highlight, target audience, lecturer, and prominent CTA button "Přejít na přihlášení →" linking to external_url. No internal enrollment.
+   - Internal course (is_external=false): title, highlight, target audience, benefits list, multiple terms (dates/location/capacity picker), price, duration, enroll button (Dialog with term selection), lecturer cards (photo + bio, multiple lecturers supported), organizer contact, materials (Google Drive links)
+   - External course (is_external=true): shortened detail with highlight, target audience, lecturers, and prominent CTA button "Přejít na přihlášení →" linking to external_url. No internal enrollment.
    - Breadcrumbs built from Sanity data (section + subsection fields), not from URL path
 
 5. `/koncepce` — Active placeholder ("Sekce se připravuje — ale už teď tu najdete...") with links to existing resources from sectionPage.resources[], categorized as podcasts/methodological packages/conceptual documents
@@ -734,7 +734,7 @@ Build an internal company intranet called "ScioEdu" for the ScioPolis organizati
 8. `/admin` — Admin-only page (check role='admin' in loader): table of all enrollments across courses, filter by course/status/date, CSV export
 
 **Sanity schemas:**
-- course: title, slug, highlight, description (block content), target_audience, benefits[], section, subsection, tags[], dates[] (array of {date_start, date_end, location, capacity, note}), duration_minutes, price, lecturer (reference), contact_name, contact_email, image, materials[] ({label, url}), external_url, is_published, is_external
+- course: title, slug, highlight, description (block content), target_audience, benefits[], section, subsection, tags[], dates[] (array of {date_start, date_end, location, capacity, note}), duration_minutes, price, lecturers (array of references), contact_name, contact_email, image, materials[] ({label, url}), external_url, is_published, is_external
 - lecturer: name, slug, photo, bio, email
 - sectionPage: title, slug, intro_text (block content), section_key, resources[] ({label, url, type}), is_visible, order
 - Seed with 8-10 sample courses in Czech across all categories
