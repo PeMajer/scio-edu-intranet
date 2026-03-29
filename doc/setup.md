@@ -10,7 +10,7 @@
 
 > ⏱️ Celá Fáze 0 zabere cca 45–60 minut. Potřebuješ: prohlížeč, přístup k e-mailu `@scioskola.cz` a heslo manager (ideálně 1Password, Bitwarden nebo alespoň bezpečný poznámkový blok).
 
-### 🟢 Krok 1 — Vytvoř GitHub repozitář
+### ✅ Krok 1 — Vytvoř GitHub repozitář
 
 1. Jdi na **github.com/new** (musíš být přihlášený)
 
@@ -40,7 +40,7 @@
 
 ---
 
-### 🟢 Krok 2 — Založ Supabase projekt
+### ✅ Krok 2 — Založ Supabase projekt
 
 1. Jdi na **supabase.com** → klikni **Start your project** (nebo **Dashboard** pokud už máš účet)
    - Přihlas se přes GitHub (nejrychlejší — rovnou se propojí)
@@ -93,7 +93,7 @@
 
 ---
 
-### 🟢 Krok 3 — Nastav Google OAuth v Google Cloud Console
+### ✅ Krok 3 — Nastav Google OAuth v Google Cloud Console
 
 > ⚠️ **Předpoklad:** Musíš být přihlášen Google účtem, který je správcem Google Workspace organizace `@scioskola.cz` (nebo mít oprávnění vytvářet projekty v Google Cloud Console pro tuto organizaci).
 
@@ -154,7 +154,7 @@
 
 ---
 
-### 🟢 Krok 4 — Založ Sanity projekt
+### ✅ Krok 4 — Založ Sanity projekt
 
 1. Jdi na **sanity.io/get-started** (nebo **sanity.io** → Sign up / Log in)
    - Přihlas se přes **Google** (nejrychlejší) nebo GitHub
@@ -194,7 +194,7 @@
 
 ---
 
-### 🟢 Krok 5 — Nastav Cloudflare Workers
+### ✅ Krok 5 — Nastav Cloudflare Workers
 
 1. Založ účet na **cloudflare.com** (pokud ještě nemáš):
    - Klikni **Sign Up** → vyplň e-mail a heslo
@@ -223,7 +223,7 @@
 
 ---
 
-### 🟢 Krok 6 — Přidej secrets do GitHub repozitáře
+### ✅ Krok 6 — Přidej secrets do GitHub repozitáře
 
 Teď máš všechny hodnoty z kroků 2–5. Přidáš je jako encrypted secrets v GitHub — CI/CD workflow je bude používat pro deploy, a ty je nikdy nedáš do kódu.
 
@@ -253,7 +253,7 @@ Teď máš všechny hodnoty z kroků 2–5. Přidáš je jako encrypted secrets 
 
 ## Fáze 1 — Generování projektu (agent)
 
-### 🔵 Krok 7 — Vygeneruj celý projekt přes Bolt.new
+### ✅ Krok 7 — Vygeneruj celý projekt přes Bolt.new
 
 Použij prompt z části **17** tvého dokumentu (`SCIO_EDU_PLAN_v2.md`).
 
@@ -264,7 +264,7 @@ Použij prompt z části **17** tvého dokumentu (`SCIO_EDU_PLAN_v2.md`).
 4. Zkontroluj, že výstup obsahuje správnou strukturu složek (viz sekce 9 projektového plánu)
 5. Exportuj projekt do GitHub repozitáře z kroku 1
 
-### 🔵 Krok 8 — Co agent vygeneruje
+### ✅ Krok 8 — Co agent vygeneruje
 
 - Remix app (routing, loadery, actions)
 - Všechny stránky a komponenty
@@ -280,7 +280,7 @@ Použij prompt z části **17** tvého dokumentu (`SCIO_EDU_PLAN_v2.md`).
 
 ## Fáze 2 — Lokální spuštění a napojení
 
-### 🟢 Krok 9 — Stáhni kód a nainstaluj dependencies
+### ✅ Krok 9 — Stáhni kód a nainstaluj dependencies
 
 **Předpoklady — ověř, že máš nainstalované:**
 
@@ -328,7 +328,7 @@ PUBLIC_SITE_URL=http://localhost:3000   # Pro lokální vývoj
 
 ---
 
-### 🟢 Krok 10 — Spusť Supabase migrace (databázové tabulky)
+### ✅ Krok 10 — Spusť Supabase migrace (databázové tabulky)
 
 1. Otevři **supabase.com** → tvůj projekt `scio-edu` → klikni na **SQL Editor** v levém menu
 
@@ -361,7 +361,7 @@ PUBLIC_SITE_URL=http://localhost:3000   # Pro lokální vývoj
 
 ---
 
-### 🟢 Krok 11 — Spusť lokální dev server a otestuj přihlášení
+### ✅ Krok 11 — Spusť lokální dev server a otestuj přihlášení
 
 ```bash
 npm run dev
@@ -391,7 +391,7 @@ Otevři prohlížeč na **http://localhost:3000** — měla by se zobrazit přih
 
 ## Fáze 3 — Obsah a Sanity Studio
 
-### 🟢 Krok 12 — Nastav Google Calendar API (service account)
+### ✅ Krok 12 — Nastav Google Calendar API (service account)
 
 > 💡 Kalendář nemusí být veřejný — přístup je přes service account. Vytvoříme ho v Google Cloud a sdílíme s ním kalendář.
 
@@ -431,7 +431,7 @@ Otevři prohlížeč na **http://localhost:3000** — měla by se zobrazit přih
 
 ---
 
-### 🟢 Krok 13 — Vlož první obsah do Sanity Studia
+### ✅ Krok 13 — Vlož první obsah do Sanity Studia
 
 **Inicializuj a spusť Sanity Studio lokálně:**
 
@@ -513,7 +513,7 @@ Klikni na **Stránka sekce** → **Create new** a vytvoř 4 záznamy:
 
 ## Fáze 4 — Deploy na produkci
 
-### 🟢 Krok 14 — Nastav env proměnné v Cloudflare
+### ✅ Krok 14 — Nastav env proměnné v Cloudflare
 
 1. Jdi na **dash.cloudflare.com** → **Workers & Pages** v levém menu
 
@@ -544,7 +544,7 @@ Klikni na **Stránka sekce** → **Create new** a vytvoř 4 záznamy:
 
 ---
 
-### 🔵 Krok 15 — CI/CD workflow (GitHub Actions)
+### ✅ Krok 15 — CI/CD workflow (GitHub Actions)
 
 Agent vygeneruje `.github/workflows/deploy.yml` — automatický deploy při push na `main`. Nemusíš nic dělat.
 
