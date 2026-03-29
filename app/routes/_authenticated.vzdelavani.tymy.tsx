@@ -1,10 +1,18 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
 import { CourseGrid } from "~/components/course-grid";
 import { ResourcesCard } from "~/components/resources-card";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
 import { Users } from "lucide-react";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
@@ -51,13 +59,26 @@ export default function VzdelavaniTymy() {
   return (
     <>
       <PageHeader
+        fullWidth
         title="Rozvoj pro týmy a kvadriády"
         description="Specializované programy pro týmovou spolupráci a rozvoj kvadriád"
         imageUrl={coverImageUrl || "/images/hero-team.jpg"}
-        breadcrumbs={[
-          { label: "Vzdělávání", href: "/vzdelavani" },
-          { label: "Týmy" },
-        ]}
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
+                  <Link to="/vzdelavani">Vzdělávání</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/40" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white/80 font-medium">Týmy</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        }
+        className="-mt-6 mb-8"
       />
 
       {introText && (
@@ -66,8 +87,8 @@ export default function VzdelavaniTymy() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
+        <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
           {courses.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
@@ -83,9 +104,11 @@ export default function VzdelavaniTymy() {
           )}
         </div>
 
-        <div className="space-y-6">
-          <ResourcesCard resources={resources} />
-        </div>
+        {resources.length > 0 && (
+          <div className="space-y-6">
+            <ResourcesCard resources={resources} />
+          </div>
+        )}
       </div>
     </>
   );

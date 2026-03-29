@@ -509,7 +509,7 @@ scio-edu/
 | Koncepce | `/koncepce` | Chráněná | Aktivní placeholder s existujícími materiály |
 | Kalendář | `/kalendar` | Chráněná | Google Calendar akcí |
 | Moje kurzy | `/moje-kurzy` | Chráněná | Přihlášené a absolvované kurzy |
-| Admin přihlášek | `/admin` | Admin only | Přehled přihlášek, odhlašování uživatelů, export, statistiky (loader ověří `role = 'admin'`). Stav tabulky (řazení, filtry, sloupce) se ukládá do localStorage. |
+| Admin přihlášek | `/admin` | Admin only | Přehled přihlášek, odhlašování uživatelů, CSV export filtrovaných dat (viditelné sloupce, UTF-8 BOM), statistiky (loader ověří `role = 'admin'`). Stav tabulky (řazení, filtry, sloupce) se ukládá do localStorage. |
 | Sanity Studio | Sanity cloud | Pouze admin | Správa obsahu |
 
 ---

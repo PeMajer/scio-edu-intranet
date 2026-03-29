@@ -81,8 +81,8 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
         <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
       </NavLink>
 
-      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 opacity-0 invisible translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
-      <div className="bg-white rounded-2xl border border-border shadow-xl p-2 min-w-[260px]">
+      <div className="absolute top-full left-0 pt-2 z-50 opacity-0 invisible translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
+      <div className="bg-white rounded-2xl border border-border shadow-xl p-2 min-w-[320px]">
         {categories.map((category) => {
           const Icon = category.icon;
           return (
@@ -269,7 +269,7 @@ function MobileMenu({
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 bg-black/40 z-40 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+          "fixed inset-0 bg-black/40 z-40 backdrop-blur-sm transition-opacity duration-300 nav:hidden",
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
@@ -277,7 +277,7 @@ function MobileMenu({
       {/* Menu panel */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-white transform transition-transform duration-300 ease-out md:hidden flex flex-col",
+          "fixed inset-0 z-50 bg-white transform transition-transform duration-300 ease-out nav:hidden flex flex-col",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -360,7 +360,7 @@ export function Header({ user, profile, educationSections }: HeaderProps) {
             </Link>
 
             {/* Desktop nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden nav:flex items-center gap-1">
               {navItems.map((item) =>
                 item.label === "Vzdělávání" && categories.length > 0 ? (
                   <DesktopEducationDropdown key={item.href} categories={categories} />
@@ -374,13 +374,13 @@ export function Header({ user, profile, educationSections }: HeaderProps) {
 
             {/* Right side */}
             <div className="flex items-center gap-2">
-              <div className="hidden md:block">
+              <div className="hidden nav:block">
                 <UserMenu user={user} profile={profile} />
               </div>
 
               {/* Mobile: avatar + hamburger */}
               <button
-                className="md:hidden relative h-9 w-9 rounded-full"
+                className="nav:hidden relative h-9 w-9 rounded-full"
                 onClick={() => setMobileOpen(true)}
               >
                 <Avatar className="h-9 w-9 ring-2 ring-brand-light">
@@ -393,7 +393,7 @@ export function Header({ user, profile, educationSections }: HeaderProps) {
                 </Avatar>
               </button>
               <button
-                className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="nav:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setMobileOpen(true)}
               >
                 <Menu className="h-5 w-5" />

@@ -53,16 +53,7 @@ export const course = {
       name: 'tags',
       title: 'Štítky',
       type: 'array',
-      of: [{ type: 'string' }],
-      options: {
-        list: [
-          { title: 'Expertní kurz', value: 'expertni' },
-          { title: 'Didaktika', value: 'didaktika' },
-          { title: 'AI', value: 'ai' },
-          { title: 'SVP', value: 'svp' },
-          { title: 'Na míru', value: 'na-miru' },
-        ],
-      },
+      of: [{ type: 'reference', to: [{ type: 'tag' }] }],
     },
     {
       name: 'dates',

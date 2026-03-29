@@ -62,7 +62,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const course = await sanity.fetch<Course>(
     `*[_type == "course" && slug.current == $slug][0]{
       ...,
-      lecturers[]->
+      lecturers[]->,
+      "tags": tags[]->title
     }`,
     { slug: params.slug }
   );

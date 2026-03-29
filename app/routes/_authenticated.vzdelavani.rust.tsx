@@ -100,8 +100,8 @@ export default function VzdelavaniRust() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-10">
+      <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
+        <div className={`space-y-10 ${resources.length > 0 ? "lg:col-span-2" : ""}`}>
           {Object.entries(subsectionConfig).map(([key, config]) => {
             const courses = subsections[key as keyof typeof subsections];
             return (
@@ -113,9 +113,11 @@ export default function VzdelavaniRust() {
           })}
         </div>
 
-        <div className="space-y-6">
-          <ResourcesCard resources={resources} />
-        </div>
+        {resources.length > 0 && (
+          <div className="space-y-6">
+            <ResourcesCard resources={resources} />
+          </div>
+        )}
       </div>
     </>
   );

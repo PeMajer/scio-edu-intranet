@@ -86,14 +86,16 @@ export default function VzdelavaniNovacek() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
+        <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
           <CourseGrid courses={courses} />
         </div>
 
-        <div className="space-y-6">
-          <ResourcesCard resources={resources} />
-        </div>
+        {resources.length > 0 && (
+          <div className="space-y-6">
+            <ResourcesCard resources={resources} />
+          </div>
+        )}
       </div>
     </>
   );

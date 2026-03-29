@@ -17,6 +17,8 @@
  * Design tokens — ScioEdu brand
  */
 @theme {
+  --breakpoint-nav: 56rem; /* 896px — desktop nav breakpoint */
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
