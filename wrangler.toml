@@ -2,10 +2,14 @@ name = "scioedu-intranet"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "./public"
 
-[vars]
-GOOGLE_SERVICE_ACCOUNT_EMAIL = ""
-GOOGLE_CALENDAR_ID = ""
-# GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY → wrangler secret put GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+[vars]                                                                                                                                                                                                                     
+SUPABASE_URL = "https://kvrdhcdqtcodnjnpezfq.supabase.co"
+SANITY_PROJECT_ID = "n1ontg57"                                                                                                                                                                                             
+SANITY_DATASET = "production"                             
+PUBLIC_SITE_URL = "https://scioedu-intranet.pages.dev"                                                                                                                                                                     
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "calendar-reader@scioedu-intranet.iam.gserviceaccount.com"                                                                                                                                  
+GOOGLE_CALENDAR_ID = "scioedu@scioskola.cz"
+# GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY → wrangler secret put GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY   
 
 [[kv_namespaces]]
 binding = "SESSION_KV"
