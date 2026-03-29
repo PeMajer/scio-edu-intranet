@@ -84,7 +84,19 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   const enrolledTerms = new Set((enrollments || []).map((e: { term_index: number }) => e.term_index));
 
-  return json({ course, courseImage, lecturerPhoto, userId: user.id, enrolledTerms: [...enrolledTerms] }, { headers });
+  // Count all enrolled users per term for capacity tracking
+  const { data: allEnrollments } = await supabase
+    .from("enrollments")
+    .select("term_index")
+    .eq("course_id", course._id)
+    .eq("status", "enrolled");
+
+  const enrolledCountByTerm: Record<number, number> = {};
+  for (const e of allEnrollments || []) {
+    enrolledCountByTerm[e.term_index] = (enrolledCountByTerm[e.term_index] || 0) + 1;
+  }
+
+  return json({ course, courseImage, lecturerPhoto, userId: user.id, enrolledTerms: [...enrolledTerms], enrolledCountByTerm }, { headers });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -94,6 +106,27 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const intent = formData.get("intent") as string;
   const termIndex = parseInt(formData.get("termIndex") as string);
   const courseId = formData.get("courseId") as string;
+
+  if (intent === "enroll") {
+    // Server-side capacity check
+    const sanity = createSanityClient(context);
+    const course = await sanity.fetch<Course>(
+      `*[_type == "course" && _id == $courseId][0]{ dates }`,
+      { courseId }
+    );
+    const termCapacity = course?.dates?.[termIndex]?.capacity;
+    if (termCapacity) {
+      const { count } = await supabase
+        .from("enrollments")
+        .select("*", { count: "exact", head: true })
+        .eq("course_id", courseId)
+        .eq("term_index", termIndex)
+        .eq("status", "enrolled");
+      if ((count || 0) >= termCapacity) {
+        return json({ error: "Kapacita termínu je již plná" }, { status: 400, headers });
+      }
+    }
+  }
 
   if (intent === "cancel") {
     const { error } = await supabase
@@ -129,13 +162,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   return json({ success: true }, { headers });
 }
 
-function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isEnrolled }: {
+function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isEnrolled, isFull }: {
   courseId: string;
   courseTitle: string;
   termIndex: number;
   dateStart: string;
   location: string;
   isEnrolled: boolean;
+  isFull: boolean;
 }) {
   const fetcher = useFetcher<{ error?: string; success?: boolean }>();
   const [open, setOpen] = useState(false);
@@ -155,8 +189,8 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
             Odhlásit se
           </Button>
         ) : (
-          <Button variant="primary" className="w-full mt-3">
-            Přihlásit se
+          <Button variant="primary" className={`w-full mt-3 ${isFull ? "cursor-not-allowed opacity-50" : ""}`} disabled={isFull}>
+            {isFull ? "Obsazeno" : "Přihlásit se"}
           </Button>
         )}
       </DialogTrigger>
@@ -273,7 +307,7 @@ function PriceDisplay({ price }: { price?: number }) {
 }
 
 export default function KurzDetail() {
-  const { course, courseImage, lecturerPhoto, enrolledTerms } = useLoaderData<typeof loader>();
+  const { course, courseImage, lecturerPhoto, enrolledTerms, enrolledCountByTerm } = useLoaderData<typeof loader>();
   const enrolledSet = new Set(enrolledTerms);
   const section = course.section ? sectionLabels[course.section] : null;
 
@@ -434,11 +468,17 @@ export default function KurzDetail() {
                           {date.location}
                         </div>
                       )}
-                      {date.capacity && (
-                        <div className="text-sm text-muted-foreground flex items-center gap-1.5">
-                          <Users className="text-brand-muted" size={14} />
-                          Kapacita: {date.capacity}
-                        </div>
+                      {date.capacity != null && (
+                        (() => {
+                          const enrolled = enrolledCountByTerm[idx] || 0;
+                          const remaining = date.capacity - enrolled;
+                          return (
+                            <div className={`text-sm flex items-center gap-1.5 ${remaining === 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                              <Users className={remaining === 0 ? "text-destructive" : "text-brand-muted"} size={14} />
+                              {remaining === 0 ? "Obsazeno" : `${remaining} z ${date.capacity} volných míst`}
+                            </div>
+                          );
+                        })()
                       )}
                       {date.note && (
                         <Badge variant="brand" size="sm">{date.note}</Badge>
@@ -450,6 +490,7 @@ export default function KurzDetail() {
                         dateStart={date.date_start}
                         location={date.location}
                         isEnrolled={enrolledSet.has(idx)}
+                        isFull={date.capacity != null && (date.capacity - (enrolledCountByTerm[idx] || 0)) <= 0}
                       />
                     </div>
                   ))}
