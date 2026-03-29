@@ -77,8 +77,8 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 ## Databázové schéma (Supabase)
 
 - `profiles` — uživatelské profily (id, email, role: `user` | `admin`)
-- `enrollments` — zápisy na kurzy (user_id, course_id, term, created_at)
-- RLS: uživatelé vidí jen vlastní záznamy; admins mají plný přístup
+- `enrollments` — zápisy na kurzy (user_id, course_id, term_index, enrolled_at, status: `enrolled` | `completed` | `cancelled`)
+- RLS: uživatelé vidí jen vlastní záznamy; admins mají plný přístup (CRUD)
 
 ## Sanity schéma
 

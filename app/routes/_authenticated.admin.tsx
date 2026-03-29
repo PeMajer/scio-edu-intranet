@@ -1,5 +1,5 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { requireAdmin } from "~/lib/supabase.server";
@@ -8,7 +8,16 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { PageHeader } from "~/components/layout/page-header";
-import { ChevronDown, ChevronUp, ChevronsUpDown, Settings2, Filter, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "~/components/ui/dialog";
+import { ChevronDown, ChevronUp, ChevronsUpDown, Settings2, Filter, X, Trash2 } from "lucide-react";
 import { FilterChip } from "~/components/filter-chip";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -104,6 +113,33 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ enrollments: enriched }, { headers });
 }
 
+export async function action({ request, context }: ActionFunctionArgs) {
+  const { supabase, headers } = await requireAdmin(request, context);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "admin-cancel") {
+    const enrollmentId = formData.get("enrollmentId") as string;
+    if (!enrollmentId) {
+      return json({ error: "Chybí ID přihlášky" }, { status: 400, headers });
+    }
+
+    const { error } = await supabase
+      .from("enrollments")
+      .update({ status: "cancelled" })
+      .eq("id", enrollmentId)
+      .eq("status", "enrolled");
+
+    if (error) {
+      return json({ error: "Nepodařilo se odhlásit uživatele" }, { status: 500, headers });
+    }
+
+    return json({ success: true }, { headers });
+  }
+
+  return json({ error: "Neznámá akce" }, { status: 400, headers });
+}
+
 type SortKey = keyof EnrichedEnrollment;
 type SortDir = "asc" | "desc";
 
@@ -132,19 +168,66 @@ function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: Sort
     : <ChevronDown size={14} className="text-brand-primary" />;
 }
 
+const STORAGE_KEY = "admin-table-state";
+
+type TableState = {
+  sortKey: SortKey | null;
+  sortDir: SortDir;
+  visibleCols: SortKey[];
+  filterCourse: string;
+  filterSection: string;
+  filterPeriod: string;
+  filterStatus: string;
+};
+
+function loadTableState(): Partial<TableState> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveTableState(state: TableState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
 export default function Admin() {
   const { enrollments } = useLoaderData<typeof loader>();
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const fetcher = useFetcher<{ error?: string; success?: boolean }>();
+  const [cancelTarget, setCancelTarget] = useState<EnrichedEnrollment | null>(null);
+
+  const [saved] = useState(loadTableState);
+  const [sortKey, setSortKey] = useState<SortKey | null>(saved.sortKey ?? null);
+  const [sortDir, setSortDir] = useState<SortDir>(saved.sortDir ?? "asc");
   const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(
-    () => new Set(allColumns.filter((c) => c.defaultVisible).map((c) => c.key))
+    () => new Set(saved.visibleCols ?? allColumns.filter((c) => c.defaultVisible).map((c) => c.key))
   );
   const [colMenuOpen, setColMenuOpen] = useState(false);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
-  const [filterCourse, setFilterCourse] = useState<string>("");
-  const [filterSection, setFilterSection] = useState<string>("");
-  const [filterPeriod, setFilterPeriod] = useState<string>("");
-  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterCourse, setFilterCourse] = useState<string>(saved.filterCourse ?? "");
+  const [filterSection, setFilterSection] = useState<string>(saved.filterSection ?? "");
+  const [filterPeriod, setFilterPeriod] = useState<string>(saved.filterPeriod ?? "");
+  const [filterStatus, setFilterStatus] = useState<string>(saved.filterStatus ?? "");
+
+  // Persist table state to localStorage
+  useEffect(() => {
+    saveTableState({
+      sortKey,
+      sortDir,
+      visibleCols: [...visibleCols],
+      filterCourse,
+      filterSection,
+      filterPeriod,
+      filterStatus,
+    });
+  }, [sortKey, sortDir, visibleCols, filterCourse, filterSection, filterPeriod, filterStatus]);
 
   // Dynamic filter options from data
   const courseOptions = [...new Set(enrollments.map((e) => e.courseName))].sort((a, b) => a.localeCompare(b, "cs"));
@@ -450,6 +533,9 @@ export default function Admin() {
                     </span>
                   </th>
                 ))}
+                <th className="py-3 px-4 font-semibold text-xs text-muted-foreground uppercase tracking-wide text-right w-16">
+                  Akce
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -463,11 +549,22 @@ export default function Admin() {
                       {renderCell(enrollment, col.key)}
                     </td>
                   ))}
+                  <td className="py-3 px-4 text-sm text-right">
+                    {enrollment.status === "enrolled" && (
+                      <button
+                        onClick={() => setCancelTarget(enrollment)}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Odhlásit z kurzu"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length} className="py-16 text-center">
+                  <td colSpan={columns.length + 1} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2">
                       {hasActiveFilters ? (
                         <>
@@ -506,6 +603,37 @@ export default function Admin() {
       )}
       </div>
       </div>
+
+      {/* Cancel enrollment dialog */}
+      <Dialog open={!!cancelTarget} onOpenChange={(open) => { if (!open) setCancelTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Odhlásit z kurzu</DialogTitle>
+            <DialogDescription>
+              Opravdu chcete odhlásit <strong>{cancelTarget?.userName}</strong> z kurzu{" "}
+              <strong>{cancelTarget?.courseName}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Zrušit</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (!cancelTarget) return;
+                fetcher.submit(
+                  { intent: "admin-cancel", enrollmentId: cancelTarget.id },
+                  { method: "post" }
+                );
+                setCancelTarget(null);
+              }}
+            >
+              Odhlásit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

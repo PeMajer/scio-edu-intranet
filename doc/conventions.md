@@ -170,6 +170,8 @@ Na mobilu (`md:hidden`) se místo klikatelného gridu zobrazuje `EventList` se v
 - Logika zápisů je v `vzdelavani.kurz.$slug.tsx` — action handler
 - Kapacita termínů je v Sanity (pole `terms[].capacity`)
 - Aktuální počet zápisů per termín dotazuj ze Supabase
+- Admin odhlášení: action `intent: "admin-cancel"` v `_authenticated.admin.tsx` — nastaví `status = "cancelled"` přes Supabase (stejná logika jako uživatelské odhlášení)
+- Admin tabulka persistuje stav (řazení, filtry, viditelnost sloupců) do `localStorage` pod klíčem `admin-table-state`
 
 ## Sanity queries
 
