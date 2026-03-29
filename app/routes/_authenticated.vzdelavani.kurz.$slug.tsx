@@ -26,8 +26,7 @@ import {
   DialogTrigger
 } from "~/components/ui/dialog";
 import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2, AlertCircle } from "lucide-react";
-import { format } from "date-fns";
-import { cs } from "date-fns/locale";
+import { formatPrague } from "~/lib/format-date";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
 
@@ -52,7 +51,7 @@ function safeFormatDate(value: string | undefined | null, fmt: string): string {
   if (!value) return "Datum neuvedeno";
   const d = new Date(value);
   if (isNaN(d.getTime())) return "Neplatné datum";
-  return format(d, fmt, { locale: cs });
+  return formatPrague(d, fmt);
 }
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {

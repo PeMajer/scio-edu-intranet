@@ -1,6 +1,6 @@
-import { format, parseISO } from "date-fns";
-import { cs } from "date-fns/locale";
+import { parseISO } from "date-fns";
 import { Calendar, Clock, MapPin } from "lucide-react";
+import { formatPrague } from "~/lib/format-date";
 import { EmptyState } from "~/components/empty-state";
 import type { CalendarEvent } from "~/lib/types";
 
@@ -27,8 +27,8 @@ export function EventList({ events, limit }: EventListProps) {
         return (
           <div key={event.id} className={`flex gap-3 py-3 ${isLast ? "" : "border-b border-border"}`}>
             <div className="inline-flex flex-col items-center justify-center bg-brand-light-pale text-brand-primary font-bold rounded-lg px-2.5 py-1.5 min-w-[48px] text-center text-xs shrink-0">
-              <span className="uppercase">{format(start, "MMM", { locale: cs })}</span>
-              <span className="text-lg leading-tight text-foreground">{format(start, "d")}</span>
+              <span className="uppercase">{formatPrague(start, "MMM")}</span>
+              <span className="text-lg leading-tight text-foreground">{formatPrague(start, "d")}</span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground leading-snug">{event.summary}</p>
@@ -36,7 +36,7 @@ export function EventList({ events, limit }: EventListProps) {
                 {!allDay && (
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {format(start, "H:mm", { locale: cs })}
+                    {formatPrague(start, "H:mm")}
                   </span>
                 )}
                 {event.location && (

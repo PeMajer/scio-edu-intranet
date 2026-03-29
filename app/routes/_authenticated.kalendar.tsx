@@ -6,7 +6,6 @@ import {
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
-  format,
   isSameDay,
   isSameMonth,
   isToday,
@@ -16,7 +15,7 @@ import {
   subMonths,
   startOfDay,
 } from "date-fns";
-import { cs } from "date-fns/locale";
+import { formatPrague } from "~/lib/format-date";
 import { ChevronLeft, ChevronRight, X, Calendar, CalendarDays } from "lucide-react";
 import { EmptyState } from "~/components/empty-state";
 import { requireAuth } from "~/lib/supabase.server";
@@ -125,7 +124,7 @@ export default function Kalendar() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <h2 className="font-[family-name:var(--font-poppins)] font-bold text-lg capitalize">
-                {format(viewMonth, "LLLL yyyy", { locale: cs })}
+                {formatPrague(viewMonth, "LLLL yyyy")}
               </h2>
               <Button
                 variant="ghost"
@@ -154,7 +153,7 @@ export default function Kalendar() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h2 className="font-[family-name:var(--font-poppins)] font-bold text-lg capitalize">
-                  {format(viewMonth, "LLLL yyyy", { locale: cs })}
+                  {formatPrague(viewMonth, "LLLL yyyy")}
                 </h2>
                 <Button
                   variant="ghost"
@@ -194,15 +193,15 @@ export default function Kalendar() {
                       <div className="self-end mb-1">
                         {isToday(day) ? (
                           <span className="bg-brand-accent text-black font-bold rounded-full w-7 h-7 flex items-center justify-center text-xs">
-                            {format(day, "d")}
+                            {formatPrague(day, "d")}
                           </span>
                         ) : isSelected ? (
                           <span className="bg-brand-primary text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-xs">
-                            {format(day, "d")}
+                            {formatPrague(day, "d")}
                           </span>
                         ) : (
                           <span className="text-xs font-medium w-7 h-7 flex items-center justify-center text-muted-foreground">
-                            {format(day, "d")}
+                            {formatPrague(day, "d")}
                           </span>
                         )}
                       </div>
@@ -232,7 +231,7 @@ export default function Kalendar() {
                 <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-[family-name:var(--font-poppins)] font-bold text-base capitalize">
-                      {format(selectedDay, "EEEE d. MMMM", { locale: cs })}
+                      {formatPrague(selectedDay, "EEEE d. MMMM")}
                     </h3>
                     <button
                       className="text-muted-foreground hover:text-foreground transition-colors p-1"
