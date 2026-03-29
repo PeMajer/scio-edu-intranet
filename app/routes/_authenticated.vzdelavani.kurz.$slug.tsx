@@ -62,7 +62,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const course = await sanity.fetch<Course>(
     `*[_type == "course" && slug.current == $slug][0]{
       ...,
-      lecturer->
+      lecturers[]->
     }`,
     { slug: params.slug }
   );
@@ -73,7 +73,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   const imageBuilder = getImageUrlBuilder(context);
   const courseImage = course.image ? imageBuilder.image(course.image).width(800).url() : null;
-  const lecturerPhoto = course.lecturer?.photo ? imageBuilder.image(course.lecturer.photo).width(200).url() : null;
+  const lecturerPhotos = (course.lecturers || []).map((l) =>
+    l.photo ? imageBuilder.image(l.photo).width(200).url() : null
+  );
 
   const { data: enrollments } = await supabase
     .from("enrollments")
@@ -96,7 +98,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     enrolledCountByTerm[e.term_index] = (enrolledCountByTerm[e.term_index] || 0) + 1;
   }
 
-  return json({ course, courseImage, lecturerPhoto, userId: user.id, enrolledTerms: [...enrolledTerms], enrolledCountByTerm }, { headers });
+  return json({ course, courseImage, lecturerPhotos, userId: user.id, enrolledTerms: [...enrolledTerms], enrolledCountByTerm }, { headers });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -269,30 +271,41 @@ function HeroBreadcrumb({ section, title }: { section: { label: string; href: st
   );
 }
 
-function LecturerCard({ lecturer, photo }: { lecturer: Course["lecturer"]; photo: string | null }) {
-  if (!lecturer) return null;
+function LecturersSection({ lecturers, photos }: { lecturers: Course["lecturers"]; photos: (string | null)[] }) {
+  if (!lecturers || lecturers.length === 0) return null;
+  const multiple = lecturers.length > 1;
   return (
-    <HighlightBox className="mt-8 flex gap-4 items-start">
-      {photo ? (
-        <img src={photo} alt={lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light shrink-0" />
-      ) : (
-        <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light shrink-0">
-          {lecturer.name[0]}
-        </div>
-      )}
-      <div>
-        <p className="font-[family-name:var(--font-poppins)] font-bold text-foreground">{lecturer.name}</p>
-        {lecturer.bio && (
-          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{lecturer.bio}</p>
-        )}
-        {lecturer.email && (
-          <a href={`mailto:${lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-flex items-center gap-1">
-            <Mail size={14} />
-            {lecturer.email}
-          </a>
-        )}
-      </div>
-    </HighlightBox>
+    <div className="mt-8 flex flex-wrap gap-4">
+      {lecturers.map((lecturer, idx) => (
+        <HighlightBox
+          key={lecturer._id}
+          className={multiple
+            ? "basis-full md:basis-[calc(50%-0.5rem)] flex flex-col gap-3 items-center text-center"
+            : "flex-1 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start text-center sm:text-left"
+          }
+        >
+          {photos[idx] ? (
+            <img src={photos[idx]!} alt={lecturer.name} className="rounded-full w-16 h-16 object-cover ring-2 ring-brand-light shrink-0" />
+          ) : (
+            <div className="rounded-full w-16 h-16 bg-brand-light flex items-center justify-center text-brand-primary font-bold text-xl ring-2 ring-brand-light shrink-0">
+              {lecturer.name[0]}
+            </div>
+          )}
+          <div>
+            <p className="font-[family-name:var(--font-poppins)] font-bold text-foreground">{lecturer.name}</p>
+            {lecturer.bio && (
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{lecturer.bio}</p>
+            )}
+            {lecturer.email && (
+              <a href={`mailto:${lecturer.email}`} className="text-brand-primary text-sm mt-2 inline-flex items-center gap-1">
+                <Mail size={14} />
+                {lecturer.email}
+              </a>
+            )}
+          </div>
+        </HighlightBox>
+      ))}
+    </div>
   );
 }
 
@@ -308,7 +321,7 @@ function PriceDisplay({ price }: { price?: number | string }) {
 }
 
 export default function KurzDetail() {
-  const { course, courseImage, lecturerPhoto, enrolledTerms, enrolledCountByTerm } = useLoaderData<typeof loader>();
+  const { course, courseImage, lecturerPhotos, enrolledTerms, enrolledCountByTerm } = useLoaderData<typeof loader>();
   const enrolledSet = new Set(enrolledTerms);
   const section = course.section ? sectionLabels[course.section] : null;
 
@@ -327,7 +340,7 @@ export default function KurzDetail() {
           className="-mt-6 mb-0"
         />
 
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="container mx-auto max-w-7xl py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
 
@@ -344,7 +357,7 @@ export default function KurzDetail() {
                 </div>
               )}
 
-              <LecturerCard lecturer={course.lecturer} photo={lecturerPhoto} />
+              <LecturersSection lecturers={course.lecturers} photos={lecturerPhotos} />
             </div>
 
             <div>
@@ -377,7 +390,7 @@ export default function KurzDetail() {
         className="-mt-6 mb-0"
       />
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="container mx-auto max-w-7xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column */}
           <div className="lg:col-span-2 pb-0 md:pb-[100px]">
@@ -425,7 +438,7 @@ export default function KurzDetail() {
               </div>
             )}
 
-            <LecturerCard lecturer={course.lecturer} photo={lecturerPhoto} />
+            <LecturersSection lecturers={course.lecturers} photos={lecturerPhotos} />
           </div>
 
           {/* Right column — sticky sidebar */}

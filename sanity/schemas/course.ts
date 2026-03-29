@@ -125,7 +125,12 @@ export const course = {
       type: 'number',
       description: 'Částka v Kč (0 = zdarma). Jednotka "Kč" se doplní automaticky.',
     },
-    { name: 'lecturer', title: 'Lektor', type: 'reference', to: [{ type: 'lecturer' }] },
+    {
+      name: 'lecturers',
+      title: 'Lektoři',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'lecturer' }] }],
+    },
     { name: 'contact_name', title: 'Kontaktní osoba', type: 'string' },
     { name: 'contact_email', title: 'Kontaktní e-mail', type: 'string' },
     { name: 'image', title: 'Obrázek kurzu', type: 'image', options: { hotspot: true } },
