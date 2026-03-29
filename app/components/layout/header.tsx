@@ -1,5 +1,5 @@
 import { Form, Link, NavLink, useSubmit } from "@remix-run/react";
-import { Menu, LogOut, Shield, X } from "lucide-react";
+import { Menu, LogOut, Shield, X, ChevronDown, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "~/components/logo";
 import { Button } from "~/components/ui/button";
@@ -13,6 +13,15 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { cn } from "~/lib/cn";
 
+const educationMeta: Record<string, { title: string; href: string; icon: LucideIcon }> = {
+  novacek: { title: "Jsem ve ScioPolis nováček", href: "/vzdelavani/novacek", icon: GraduationCap },
+  rust: { title: "Vzdělávání a růst pro každého", href: "/vzdelavani/rust", icon: Sparkles },
+  tymy: { title: "Rozvoj pro týmy a kvadriády", href: "/vzdelavani/tymy", icon: Users },
+  cesty: { title: "Vzdělávací cesty", href: "/vzdelavani/cesty", icon: Map },
+};
+
+const educationOrder = ["novacek", "rust", "tymy", "cesty"];
+
 interface HeaderProps {
   user: {
     id: string;
@@ -23,6 +32,7 @@ interface HeaderProps {
     avatar_url?: string;
     role?: string;
   } | null;
+  educationSections?: string[];
 }
 
 const navItems = [
@@ -52,6 +62,62 @@ function DesktopNavLink({ href, children }: { href: string; children: React.Reac
   );
 }
 
+function DesktopEducationDropdown({ categories }: { categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }> }) {
+  return (
+    <div className="relative group">
+      <NavLink
+        to="/vzdelavani"
+        className={({ isActive }) =>
+          cn(
+            "text-sm px-3 py-2 font-medium transition-colors border-b-2 pb-1 flex items-center",
+            isActive
+              ? "text-brand-primary"
+              : "text-muted-foreground hover:text-brand-primary"
+          )
+        }
+        style={({ isActive }) => ({ borderBottomColor: isActive ? 'var(--color-scioedu-accent)' : 'transparent' })}
+      >
+        Vzdělávání
+        <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
+      </NavLink>
+
+      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 opacity-0 invisible translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 ease-out">
+      <div className="bg-white rounded-2xl border border-border shadow-xl p-2 min-w-[260px]">
+        {categories.map((category) => {
+          const Icon = category.icon;
+          return (
+            <NavLink
+              key={category.key}
+              to={category.href}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 py-2.5 text-sm transition-colors cursor-pointer",
+                  isActive
+                    ? "border-l-[3px] bg-brand-light/20 text-brand-primary font-semibold pl-[calc(0.75rem-3px)] pr-3"
+                    : "rounded-xl text-foreground hover:bg-brand-light/40 hover:text-brand-primary font-medium px-3"
+                )
+              }
+              style={({ isActive }) => isActive ? { borderLeftColor: 'var(--color-scioedu-accent)' } : undefined}
+            >
+              <Icon size={16} className="text-brand-primary" />
+              {category.title}
+            </NavLink>
+          );
+        })}
+        <div className="border-t border-border mt-1 pt-1">
+          <Link
+            to="/vzdelavani"
+            className="px-3 py-2 text-xs text-brand-primary font-medium hover:text-brand-primary/80 flex items-center gap-1"
+          >
+            Všechny kategorie →
+          </Link>
+        </div>
+      </div>
+      </div>
+    </div>
+  );
+}
+
 function MobileNavLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) {
   return (
     <NavLink
@@ -69,6 +135,71 @@ function MobileNavLink({ href, children, onClick }: { href: string; children: Re
     >
       {children}
     </NavLink>
+  );
+}
+
+function MobileEducationSection({
+  categories,
+  onClose,
+}: {
+  categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }>;
+  onClose: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between px-6 py-5">
+        <NavLink
+          to="/vzdelavani"
+          onClick={onClose}
+          className={({ isActive }) =>
+            cn(
+              "text-xl font-medium transition-colors",
+              isActive
+                ? "text-brand-primary"
+                : "text-foreground hover:text-brand-primary"
+            )
+          }
+        >
+          Vzdělávání
+        </NavLink>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronDown
+            size={20}
+            className={cn("transition-transform duration-200", expanded && "rotate-180")}
+          />
+        </button>
+      </div>
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-out",
+          expanded ? "max-h-[300px]" : "max-h-0"
+        )}
+      >
+        {categories.map((category) => (
+          <NavLink
+            key={category.key}
+            to={category.href}
+            onClick={onClose}
+            className={({ isActive }) =>
+              cn(
+                "block pl-10 pr-6 py-3 text-base transition-colors border-l-2 ml-6",
+                isActive
+                  ? "border-brand-primary text-brand-primary"
+                  : "border-brand-light text-muted-foreground hover:text-brand-primary"
+              )
+            }
+            style={({ isActive }) => isActive ? { borderLeftColor: 'var(--color-scioedu-accent)' } : undefined}
+          >
+            {category.title}
+          </NavLink>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -102,7 +233,7 @@ function UserMenu({ user, profile }: HeaderProps) {
         </div>
         {profile?.role === "admin" && (
           <>
-            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light-hover hover:text-brand-primary focus:bg-brand-light-hover focus:text-brand-primary">
+            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
               <Link to="/admin" className="flex items-center gap-2.5 text-sm">
                 <Shield className="text-brand-primary" size={16} />
                 Administrace
@@ -113,7 +244,7 @@ function UserMenu({ user, profile }: HeaderProps) {
         )}
         <DropdownMenuItem
           onSelect={() => submit(null, { method: "post", action: "/auth/logout" })}
-          className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-brand-light-hover hover:text-brand-primary focus:bg-brand-light-hover focus:text-brand-primary"
+          className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
         >
           <LogOut size={16} />
           Odhlásit se
@@ -123,7 +254,17 @@ function UserMenu({ user, profile }: HeaderProps) {
   );
 }
 
-function MobileMenu({ user, profile, open, onClose }: HeaderProps & { open: boolean; onClose: () => void }) {
+function MobileMenu({
+  user,
+  profile,
+  educationSections,
+  open,
+  onClose,
+}: HeaderProps & { open: boolean; onClose: () => void }) {
+  const categories = educationSections?.length
+    ? educationOrder.filter((k) => educationSections.includes(k)).map((k) => ({ key: k, ...educationMeta[k] }))
+    : [];
+
   return (
     <>
       {/* Backdrop */}
@@ -202,8 +343,12 @@ function MobileMenu({ user, profile, open, onClose }: HeaderProps & { open: bool
   );
 }
 
-export function Header({ user, profile }: HeaderProps) {
+export function Header({ user, profile, educationSections }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const categories = educationSections?.length
+    ? educationOrder.filter((k) => educationSections.includes(k)).map((k) => ({ key: k, ...educationMeta[k] }))
+    : [];
 
   return (
     <>
@@ -217,11 +362,15 @@ export function Header({ user, profile }: HeaderProps) {
 
             {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <DesktopNavLink key={item.href} href={item.href}>
-                  {item.label}
-                </DesktopNavLink>
-              ))}
+              {navItems.map((item) =>
+                item.label === "Vzdělávání" && categories.length > 0 ? (
+                  <DesktopEducationDropdown key={item.href} categories={categories} />
+                ) : (
+                  <DesktopNavLink key={item.href} href={item.href}>
+                    {item.label}
+                  </DesktopNavLink>
+                )
+              )}
             </nav>
 
             {/* Right side */}
@@ -259,6 +408,7 @@ export function Header({ user, profile }: HeaderProps) {
       <MobileMenu
         user={user}
         profile={profile}
+        educationSections={educationSections}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
       />
