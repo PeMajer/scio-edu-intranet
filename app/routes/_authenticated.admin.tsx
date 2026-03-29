@@ -6,8 +6,10 @@ import { requireAdmin } from "~/lib/supabase.server";
 import { createSanityClient } from "~/lib/sanity.server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
 import { PageHeader } from "~/components/layout/page-header";
 import { ChevronDown, ChevronUp, ChevronsUpDown, Settings2, Filter, X } from "lucide-react";
+import { FilterChip } from "~/components/filter-chip";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import type { Course } from "~/lib/sanity.server";
@@ -401,24 +403,19 @@ export default function Admin() {
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {filterCourse && (
-            <button onClick={() => setFilterCourse("")} className="inline-flex items-center gap-1 bg-brand-light-pale text-brand-primary text-xs font-medium px-2.5 py-1 rounded-full hover:opacity-80 transition-opacity">
-              {filterCourse} <X size={12} />
-            </button>
+            <FilterChip label={filterCourse} onRemove={() => setFilterCourse("")} />
           )}
           {filterSection && (
-            <button onClick={() => setFilterSection("")} className="inline-flex items-center gap-1 bg-brand-light-pale text-brand-primary text-xs font-medium px-2.5 py-1 rounded-full hover:opacity-80 transition-opacity">
-              {filterSection} <X size={12} />
-            </button>
+            <FilterChip label={filterSection} onRemove={() => setFilterSection("")} />
           )}
           {filterPeriod && (
-            <button onClick={() => setFilterPeriod("")} className="inline-flex items-center gap-1 bg-brand-light-pale text-brand-primary text-xs font-medium px-2.5 py-1 rounded-full hover:opacity-80 transition-opacity">
-              {filterPeriod} <X size={12} />
-            </button>
+            <FilterChip label={filterPeriod} onRemove={() => setFilterPeriod("")} />
           )}
           {filterStatus && (
-            <button onClick={() => setFilterStatus("")} className="inline-flex items-center gap-1 bg-brand-light-pale text-brand-primary text-xs font-medium px-2.5 py-1 rounded-full hover:opacity-80 transition-opacity">
-              {statusConfig[filterStatus as keyof typeof statusConfig]?.label || filterStatus} <X size={12} />
-            </button>
+            <FilterChip
+              label={statusConfig[filterStatus as keyof typeof statusConfig]?.label || filterStatus}
+              onRemove={() => setFilterStatus("")}
+            />
           )}
           <button onClick={clearFilters} className="text-xs text-muted-foreground hover:text-brand-primary transition-colors ml-1">
             Zrušit vše
@@ -427,7 +424,7 @@ export default function Admin() {
       )}
 
       <div className="relative">
-      <div ref={scrollRef} className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
+      <Card ref={scrollRef} className="overflow-x-auto">
           <table className="w-full whitespace-nowrap">
             <thead>
               <tr className="border-b border-border bg-brand-light-pale/50">
@@ -467,7 +464,7 @@ export default function Admin() {
               )}
             </tbody>
           </table>
-      </div>
+      </Card>
       {/* Scroll indicators */}
       {canScrollLeft && (
         <div className="absolute left-0 top-0 bottom-0 w-10 pointer-events-none rounded-l-2xl flex items-center justify-start pl-2 transition-opacity" style={{ background: 'linear-gradient(to right, var(--color-scioedu-light), transparent)' }}>

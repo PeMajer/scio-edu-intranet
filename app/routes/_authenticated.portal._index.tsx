@@ -147,7 +147,7 @@ export default function Portal() {
         {/* Sidebar (1/3) */}
         <div className="space-y-6">
           {/* Calendar widget */}
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+          <Card className="p-5">
             <SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
             <EventList events={upcomingEvents as CalendarEvent[]} limit={3} />
             <Button
@@ -160,7 +160,7 @@ export default function Portal() {
                 Celý kalendář
               </Link>
             </Button>
-          </div>
+          </Card>
 
           {/* Koncepce card with photo */}
           <Card className="overflow-hidden">

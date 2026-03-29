@@ -65,11 +65,11 @@ export function PageHeader({
             <>
               <div
                 className="absolute inset-0 md:hidden"
-                style={{ background: 'linear-gradient(to right, rgba(29,162,172,0.85) 0%, rgba(29,162,172,0.60) 70%, rgba(29,162,172,0.30) 100%)' }}
+                style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--color-scioedu-primary) 85%, transparent) 0%, color-mix(in srgb, var(--color-scioedu-primary) 60%, transparent) 70%, color-mix(in srgb, var(--color-scioedu-primary) 30%, transparent) 100%)' }}
               />
               <div
                 className="absolute inset-0 hidden md:block"
-                style={{ background: 'linear-gradient(to right, rgba(29,162,172,0.75), rgba(29,162,172,0.40), transparent)' }}
+                style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--color-scioedu-primary) 75%, transparent), color-mix(in srgb, var(--color-scioedu-primary) 40%, transparent), transparent)' }}
               />
               <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/30 to-transparent" />
             </>

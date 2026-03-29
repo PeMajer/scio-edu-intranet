@@ -18,6 +18,7 @@ import {
 } from "date-fns";
 import { cs } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, X, Calendar } from "lucide-react";
+import { EmptyState } from "~/components/empty-state";
 import { requireAuth } from "~/lib/supabase.server";
 import { fetchCalendarEvents } from "~/lib/google-calendar.server";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
@@ -114,7 +115,7 @@ export default function Kalendar() {
         {/* Calendar grid (2/3) — desktop only */}
         <div className="lg:col-span-2">
           {/* Mobile: month list */}
-          <div className="md:hidden bg-card rounded-2xl border border-border shadow-sm p-5">
+          <Card className="md:hidden p-5">
             <div className="flex items-center justify-between mb-4">
               <Button
                 variant="ghost"
@@ -135,14 +136,11 @@ export default function Kalendar() {
               </Button>
             </div>
             {monthEvents.length === 0 ? (
-              <div className="text-center py-6">
-                <Calendar className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">Žádné události v tomto měsíci</p>
-              </div>
+              <EmptyState icon={Calendar} message="Žádné události v tomto měsíci" />
             ) : (
               <EventList events={monthEvents as CalendarEvent[]} />
             )}
-          </div>
+          </Card>
 
           {/* Desktop: calendar grid */}
           <Card className="hidden md:block">
@@ -191,7 +189,7 @@ export default function Kalendar() {
                         isSelected && "bg-brand-light-pale",
                         !isSelected && hasEvents && !outsideMonth && "cursor-pointer hover:bg-brand-light-hover transition-colors"
                       )}
-                      style={{ borderColor: isSelected ? 'var(--color-scioedu-primary)' : 'rgba(226,232,240,0.6)' }}
+                      style={{ borderColor: isSelected ? 'var(--color-scioedu-primary)' : 'hsl(var(--border) / 0.6)' }}
                     >
                       <div className="self-end mb-1">
                         {isToday(day) ? (
@@ -252,10 +250,10 @@ export default function Kalendar() {
 
         {/* Upcoming events sidebar (1/3) */}
         <div>
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+          <Card className="p-5">
             <SectionHeader icon={Calendar} title="Nadcházející události" className="mb-4" />
             <EventList events={upcomingEvents as CalendarEvent[]} limit={8} />
-          </div>
+          </Card>
         </div>
       </div>
     </>

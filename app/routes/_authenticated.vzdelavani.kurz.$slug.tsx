@@ -5,6 +5,7 @@ import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { PageHeader } from "~/components/layout/page-header";
 import { HighlightBox } from "~/components/highlight-box";
@@ -312,7 +313,7 @@ export default function KurzDetail() {
             </div>
 
             <div>
-              <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
+              <Card className="sticky top-24 shadow-lg p-6">
                 <PriceDisplay price={course.price} />
                 <Separator className="my-4" />
                 <Button variant="primary" size="xl" className="w-full" asChild>
@@ -321,7 +322,7 @@ export default function KurzDetail() {
                     <ExternalLink className="w-5 h-5 ml-2" />
                   </a>
                 </Button>
-              </div>
+              </Card>
             </div>
           </div>
         </div>
@@ -394,7 +395,7 @@ export default function KurzDetail() {
 
           {/* Right column — sticky sidebar */}
           <div>
-            <div className="sticky top-24 bg-card rounded-2xl border border-border shadow-lg p-6">
+            <Card className="sticky top-24 shadow-lg p-6">
               {course.duration_minutes && (
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Clock className="w-4 h-4" />
@@ -470,7 +471,7 @@ export default function KurzDetail() {
                   )}
                 </>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </div>

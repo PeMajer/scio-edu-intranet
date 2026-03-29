@@ -71,7 +71,7 @@ export default function Koncepce() {
               />
               <div
                 className="absolute inset-0"
-                style={{ background: 'linear-gradient(to top, rgba(29,162,172,0.60) 0%, transparent 100%)' }}
+                style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 60%, transparent) 0%, transparent 100%)' }}
               />
             </div>
             <div className="bg-card p-5 rounded-b-2xl">

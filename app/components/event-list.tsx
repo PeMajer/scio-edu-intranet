@@ -1,6 +1,7 @@
 import { format, parseISO } from "date-fns";
 import { cs } from "date-fns/locale";
 import { Calendar, Clock, ExternalLink, MapPin } from "lucide-react";
+import { EmptyState } from "~/components/empty-state";
 import type { CalendarEvent } from "~/lib/types";
 
 interface EventListProps {
@@ -13,12 +14,7 @@ export function EventList({ events, limit }: EventListProps) {
   const visible = limit ? events.slice(0, limit) : events;
 
   if (visible.length === 0) {
-    return (
-      <div className="text-center py-6">
-        <Calendar className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-        <p className="text-muted-foreground text-sm">Žádné nadcházející události</p>
-      </div>
-    );
+    return <EmptyState icon={Calendar} message="Žádné nadcházející události" />;
   }
 
   return (
