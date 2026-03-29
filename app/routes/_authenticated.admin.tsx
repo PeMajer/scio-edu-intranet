@@ -167,6 +167,22 @@ export default function Admin() {
     setFilterStatus("");
   }
 
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const colDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterMenuOpen && filterDropdownRef.current && !filterDropdownRef.current.contains(e.target as Node)) {
+        setFilterMenuOpen(false);
+      }
+      if (colMenuOpen && colDropdownRef.current && !colDropdownRef.current.contains(e.target as Node)) {
+        setColMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [filterMenuOpen, colMenuOpen]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -283,7 +299,7 @@ export default function Admin() {
         </h2>
         <div className="flex items-center gap-2">
           {/* Filter button */}
-          <div className="relative">
+          <div className="relative" ref={filterDropdownRef}>
             <Button
               variant="ghost"
               size="sm"
@@ -299,9 +315,7 @@ export default function Admin() {
               )}
             </Button>
             {filterMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setFilterMenuOpen(false)} />
-                <div className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-auto sm:top-full mt-1 z-50 bg-card rounded-xl border border-border shadow-lg p-4 sm:min-w-[260px] space-y-3">
+              <div className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-auto sm:top-full mt-1 z-50 bg-card rounded-xl border border-border shadow-lg p-4 sm:min-w-[260px] space-y-3">
                   <div>
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Kurz</label>
                     <select
@@ -352,19 +366,18 @@ export default function Admin() {
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="flex items-center gap-1 text-sm text-brand-primary hover:opacity-80 transition-opacity pt-1"
+                      className="flex items-center gap-1 text-sm text-brand-primary hover:opacity-80 transition-opacity pt-1 cursor-pointer"
                     >
                       <X size={14} />
                       Zrušit filtry
                     </button>
                   )}
                 </div>
-              </>
             )}
           </div>
 
           {/* Columns button */}
-          <div className="relative">
+          <div className="relative" ref={colDropdownRef}>
             <Button
               variant="ghost"
               size="sm"
@@ -375,8 +388,6 @@ export default function Admin() {
               Sloupce
             </Button>
             {colMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setColMenuOpen(false)} />
                 <div className="absolute right-0 top-full mt-1 z-50 bg-card rounded-xl border border-border shadow-lg p-2 min-w-[180px]">
                   {allColumns.map((col) => (
                     <label
@@ -393,7 +404,6 @@ export default function Admin() {
                     </label>
                   ))}
                 </div>
-              </>
             )}
           </div>
         </div>
@@ -417,7 +427,7 @@ export default function Admin() {
               onRemove={() => setFilterStatus("")}
             />
           )}
-          <button onClick={clearFilters} className="text-xs text-muted-foreground hover:text-brand-primary transition-colors ml-1">
+          <button onClick={clearFilters} className="text-xs text-muted-foreground hover:text-brand-primary transition-colors ml-1 cursor-pointer">
             Zrušit vše
           </button>
         </div>
@@ -455,10 +465,28 @@ export default function Admin() {
                   ))}
                 </tr>
               ))}
-              {enrollments.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length} className="py-12 text-center text-muted-foreground">
-                    Zatím nejsou žádné přihlášky
+                  <td colSpan={columns.length} className="py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      {hasActiveFilters ? (
+                        <>
+                          <Filter size={32} className="text-muted-foreground/40" />
+                          <p className="text-muted-foreground font-medium">Žádné přihlášky neodpovídají filtru</p>
+                          <button
+                            onClick={clearFilters}
+                            className="text-sm text-brand-primary hover:opacity-80 transition-opacity mt-1 cursor-pointer"
+                          >
+                            Zrušit filtry
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <ChevronsUpDown size={32} className="text-muted-foreground/40" />
+                          <p className="text-muted-foreground font-medium">Zatím nejsou žádné přihlášky</p>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}
