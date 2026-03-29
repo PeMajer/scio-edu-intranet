@@ -513,34 +513,62 @@ Klikni na **Stránka sekce** → **Create new** a vytvoř 4 záznamy:
 
 ## Fáze 4 — Deploy na produkci
 
-### ✅ Krok 14 — Nastav env proměnné v Cloudflare
+### ✅ Krok 14 — Nastav Cloudflare Pages projekt a env proměnné
+
+#### 14a — Vytvoř Pages projekt
 
 1. Jdi na **dash.cloudflare.com** → **Workers & Pages** v levém menu
+2. Klikni **Create application** → dole klikni na **"Looking to deploy Pages? Get started"**
+3. Zvol **Drag and drop your files** → nahraj libovolný placeholder soubor (CI/CD ho přepíše)
+4. Pojmenuj projekt `scioedu-intranet` (musí odpovídat hodnotě `name` ve `wrangler.toml`)
+5. Klikni **Deploy**
 
-2. Pokud ještě nemáš worker:
-   - CI/CD z kroku 16 ho vytvoří automaticky při prvním deploy
-   - **Alternativa:** Můžeš ho vytvořit ručně: klikni **Create** → **Create Worker** → pojmenuj ho `scio-edu-intranet` → **Deploy** (vytvoří prázdný worker, CI/CD ho pak přepíše)
+> ⚠️ **Pozor:** Projekt je typu **Pages**, ne Worker! Worker a Pages jsou dvě různé věci. Workflow deployuje přes `wrangler pages deploy`.
 
-3. Klikni na worker `scio-edu-intranet` → záložka **Settings** → **Variables and Secrets**
+#### 14b — Vytvoř KV namespace pro sessions
 
-4. Klikni **Add** a přidej proměnné. Pro každou vyber správný typ:
+1. V levém menu jdi na **Storage & databases** → **Workers KV**
+2. Klikni **+ Create Instance** → pojmenuj ho `SESSION_KV`
+3. Po vytvoření jdi do **Settings** → zkopíruj **Namespace ID** (hexadecimální string)
+4. Vlož ID do `wrangler.toml`:
+   ```toml
+   [[kv_namespaces]]
+   binding = "SESSION_KV"
+   id = "tvoje-namespace-id"
+   preview_id = "tvoje-namespace-id"
+   ```
+
+#### 14c — Nastav env proměnné
+
+Cloudflare Pages rozlišuje dva typy proměnných:
+
+**Plaintext proměnné** se řídí přes `wrangler.toml` (`[vars]` sekce) — nelze je přidávat přes dashboard:
+
+| Name | Hodnota |
+|---|---|
+| `SUPABASE_URL` | `https://abcdefghij.supabase.co` |
+| `SANITY_PROJECT_ID` | tvoje project ID |
+| `SANITY_DATASET` | `production` |
+| `PUBLIC_SITE_URL` | `https://scioedu-intranet.pages.dev` (později `https://intranet.scioedu.cz`) |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | email service accountu (viz krok 12) |
+| `GOOGLE_CALENDAR_ID` | `scioedu@scioskola.cz` |
+
+**Secret proměnné** se nastavují přes dashboard (Workers & Pages → `scioedu-intranet` → Settings → Variables and Secrets → **+ Add**):
 
 | Name | Type | Hodnota |
 |---|---|---|
-| `SUPABASE_URL` | **Text** | `https://abcdefghij.supabase.co` |
-| `SUPABASE_ANON_KEY` | **Secret** | tvůj Publishable key (`sb_publishable_...`) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Secret** | tvůj Secret key (`sb_secret_...`) |
-| `SANITY_PROJECT_ID` | **Text** | `abc123xy` |
-| `SANITY_DATASET` | **Text** | `production` |
+| `SUPABASE_ANON_KEY` | **Secret** | tvůj Publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret** | tvůj Secret key |
 | `SANITY_API_TOKEN` | **Secret** | tvůj Sanity token |
-| `PUBLIC_SITE_URL` | **Text** | `https://intranet.scioedu.cz` |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | **Text** | email service accountu (viz krok 12) |
 | `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | **Secret** | private_key z JSON klíče (viz krok 12) |
-| `GOOGLE_CALENDAR_ID` | **Text** | `scioedu@scioskola.cz` |
 
-> 💡 Proměnné označené jako **Secret** jsou zašifrované a nejdou zpětně zobrazit. **Text** proměnné jsou viditelné — pro non-sensitive hodnoty je to OK.
+> ⚠️ **Pozor na mezery v názvech!** Při zadávání secrets v dashboardu se ujisti, že název neobsahuje přebytečné mezery (např. `" SUPABASE_ANON_KEY "` místo `"SUPABASE_ANON_KEY"`). To způsobí, že app proměnnou nenajde.
 
-5. Klikni **Save and deploy**
+> 💡 Secrets nastav pro **Production** i **Preview** environment (přepínač nahoře v dashboardu).
+
+#### 14d — Ověř API token
+
+Tvůj `CLOUDFLARE_API_TOKEN` (nastavený v GitHub Secrets, krok 6) musí mít oprávnění **Cloudflare Pages: Edit**. Ověříš v: **My Profile** → **API Tokens** → klikni na tři tečky u tokenu → **Edit** → zkontroluj oprávnění.
 
 ---
 
@@ -552,12 +580,12 @@ Agent vygeneruje `.github/workflows/deploy.yml` — automatický deploy při pus
 1. Při každém push/merge na `main` se spustí GitHub Action
 2. Nainstaluje dependencies (`npm ci`)
 3. Buildne Remix app (`npm run build`)
-4. Deployne na Cloudflare Workers pomocí `wrangler`
+4. Deployne na Cloudflare Pages pomocí `wrangler pages deploy`
 5. Použije secrets z kroku 6 pro autentizaci
 
 ---
 
-### 🟢 Krok 16 — Pushni kód na GitHub a ověř deploy
+### ✅ Krok 16 — Pushni kód na GitHub a ověř deploy
 
 **Pokud máš branch protection (krok 1, bod 4):**
 
@@ -603,30 +631,57 @@ git push origin main
 
 ---
 
-### 🟢 Krok 16b — Nastav vlastní doménu `intranet.scioedu.cz`
+### ✅ Krok 16b — Nastav vlastní doménu `intranet.scioedu.cz`
 
-1. V Cloudflare Workers → tvůj worker → **Settings** → **Domains & Routes** → **Add** → **Custom domain**
-2. Zadej: `intranet.scioedu.cz`
-3. Cloudflare ti řekne, jaký DNS záznam přidat (typicky **CNAME** směřující na `scio-edu-intranet.[tvujname].workers.dev`)
-4. V DNS správě domény `scioedu.cz` přidej požadovaný záznam:
+1. Jdi na **Workers & Pages** → `scioedu-intranet` → záložka **Custom domains**
+2. Klikni **Set up a custom domain** → zadej `intranet.scioedu.cz`
+3. Zvol **Begin CNAME setup** (doména není na Cloudflare, spravuje ji zřizovatel)
+4. Cloudflare ti ukáže CNAME záznam. Pošli správci domény `scioedu.cz`:
    ```
    Typ:    CNAME
    Název:  intranet
-   Cíl:    scio-edu-intranet.[tvujname].workers.dev
+   Cíl:    scioedu-intranet.pages.dev
    TTL:    Auto
    ```
    > Kde přesně DNS záznam přidáš záleží na tom, kde je doména `scioedu.cz` spravovaná (Cloudflare, Wedos, Active24, Google Domains...). Pokud nevíš, zeptej se správce domény.
-5. Počkej na propagaci (5 min až 24 hodin, obvykle do 30 minut)
-6. Ověř: otevři `https://intranet.scioedu.cz` — měla by se zobrazit přihlašovací stránka
+5. Po nastavení DNS záznamu klikni **Check DNS records** v Cloudflare
+6. Počkej na propagaci (5 min až 24 hodin, obvykle do 30 minut)
+7. Ověř: otevři `https://intranet.scioedu.cz` — měla by se zobrazit přihlašovací stránka
 
-> 💡 Pokud jsi v předchozích krocích všude nastavil `intranet.scioedu.cz` (Supabase redirect URL, Sanity CORS, Google Cloud Console), vše by mělo rovnou fungovat. Pokud ne, zkontroluj body níže.
+**Po aktivaci domény aktualizuj:**
+- `PUBLIC_SITE_URL` ve `wrangler.toml` na `https://intranet.scioedu.cz`
+- Supabase → Authentication → URL Configuration → **Site URL** na `https://intranet.scioedu.cz`
+
+> 💡 Redirect URLs v Supabase by měly obsahovat jak produkční URL, tak localhost pro lokální vývoj.
 
 **Checklist — kde všude musí být `intranet.scioedu.cz`:**
-- ✅ Supabase → Authentication → URL Configuration → Redirect URLs (krok 2, bod 6)
-- ✅ Google Cloud Console → Credentials → Authorized redirect URIs: `https://intranet.scioedu.cz/auth/callback` (viz krok 3)
+- ✅ Supabase → Authentication → URL Configuration → Site URL + Redirect URLs (krok 2)
+- ✅ Google Cloud Console → Credentials → Authorized redirect URIs (viz krok 3)
 - ✅ Sanity → CORS Origins (krok 4, bod 5)
-- ✅ Cloudflare Workers → env `PUBLIC_SITE_URL` (krok 14)
+- ✅ `wrangler.toml` → `PUBLIC_SITE_URL` (krok 14c)
 - ✅ GitHub Secrets → `PUBLIC_SITE_URL` (krok 6)
+
+---
+
+### ✅ Krok 16c — Nasaď Sanity Studio
+
+Sanity Studio je hostované na `sanity.studio` (ne součást Remix app).
+
+1. V terminálu spusť:
+   ```bash
+   cd scioedu && npx sanity deploy
+   ```
+2. Zvol hostname (např. `scioedu`) → studio bude na `scioedu.sanity.studio`
+3. Sanity ti ukáže `appId` — vlož ho do `scioedu/sanity.cli.ts` do sekce `deployment`:
+   ```ts
+   deployment: {
+     appId: 'tvoje-app-id',
+     autoUpdates: true,
+   }
+   ```
+4. Commitni změnu
+
+> 💡 Admini přistupují k Sanity Studiu přes `scioedu.sanity.studio` pro správu obsahu (kurzy, stránky, dokumenty).
 
 ---
 
