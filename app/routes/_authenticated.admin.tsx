@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "~/components/ui/dialog";
-import { ChevronDown, ChevronUp, ChevronsUpDown, Columns3, SlidersHorizontal, X, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, Columns3, Download, SlidersHorizontal, X, Trash2 } from "lucide-react";
 import { FilterChip } from "~/components/filter-chip";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -144,8 +144,8 @@ type SortKey = keyof EnrichedEnrollment;
 type SortDir = "asc" | "desc";
 
 const allColumns = [
+  { key: "userEmail" as SortKey, label: "Email", defaultVisible: true, locked: true },
   { key: "userName" as SortKey, label: "Uživatel", defaultVisible: true },
-  { key: "userEmail" as SortKey, label: "Email", defaultVisible: true },
   { key: "courseName" as SortKey, label: "Kurz", defaultVisible: true },
   { key: "courseSection" as SortKey, label: "Kategorie", defaultVisible: true },
   { key: "termDate" as SortKey, label: "Termín kurzu", defaultVisible: true },
@@ -203,21 +203,34 @@ export default function Admin() {
   const fetcher = useFetcher<{ error?: string; success?: boolean }>();
   const [cancelTarget, setCancelTarget] = useState<EnrichedEnrollment | null>(null);
 
-  const [saved] = useState(loadTableState);
-  const [sortKey, setSortKey] = useState<SortKey | null>(saved.sortKey ?? null);
-  const [sortDir, setSortDir] = useState<SortDir>(saved.sortDir ?? "asc");
-  const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(
-    () => new Set(saved.visibleCols ?? allColumns.filter((c) => c.defaultVisible).map((c) => c.key))
-  );
+  const defaultVisibleCols = new Set(allColumns.filter((c) => c.defaultVisible).map((c) => c.key));
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(defaultVisibleCols);
   const [colMenuOpen, setColMenuOpen] = useState(false);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
-  const [filterCourse, setFilterCourse] = useState<string>(saved.filterCourse ?? "");
-  const [filterSection, setFilterSection] = useState<string>(saved.filterSection ?? "");
-  const [filterPeriod, setFilterPeriod] = useState<string>(saved.filterPeriod ?? "");
-  const [filterStatus, setFilterStatus] = useState<string>(saved.filterStatus ?? "");
+  const [filterCourse, setFilterCourse] = useState<string>("");
+  const [filterSection, setFilterSection] = useState<string>("");
+  const [filterPeriod, setFilterPeriod] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
-  // Persist table state to localStorage
+  // Restore table state from localStorage after hydration
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    const saved = loadTableState();
+    if (saved.sortKey !== undefined) setSortKey(saved.sortKey);
+    if (saved.sortDir) setSortDir(saved.sortDir);
+    if (saved.visibleCols) setVisibleCols(new Set(saved.visibleCols));
+    if (saved.filterCourse) setFilterCourse(saved.filterCourse);
+    if (saved.filterSection) setFilterSection(saved.filterSection);
+    if (saved.filterPeriod) setFilterPeriod(saved.filterPeriod);
+    if (saved.filterStatus) setFilterStatus(saved.filterStatus);
+    setHydrated(true);
+  }, []);
+
+  // Persist table state to localStorage (only after hydration to avoid overwriting saved state with defaults)
+  useEffect(() => {
+    if (!hydrated) return;
     saveTableState({
       sortKey,
       sortDir,
@@ -227,7 +240,7 @@ export default function Admin() {
       filterPeriod,
       filterStatus,
     });
-  }, [sortKey, sortDir, visibleCols, filterCourse, filterSection, filterPeriod, filterStatus]);
+  }, [hydrated, sortKey, sortDir, visibleCols, filterCourse, filterSection, filterPeriod, filterStatus]);
 
   // Dynamic filter options from data
   const courseOptions = [...new Set(enrollments.map((e) => e.courseName))].sort((a, b) => a.localeCompare(b, "cs"));
@@ -310,6 +323,40 @@ export default function Admin() {
     });
   }
 
+  function exportCsv() {
+    const visibleColumns = allColumns.filter((c) => visibleCols.has(c.key));
+    const header = visibleColumns.map((c) => c.label);
+
+    function cellValue(e: EnrichedEnrollment, key: SortKey): string {
+      if (key === "termDate" || key === "enrolled_at") return safeFormatDate(e[key]);
+      if (key === "status") {
+        const cfg = statusConfig[e.status as keyof typeof statusConfig];
+        return cfg?.label || e.status;
+      }
+      return String(e[key] ?? "");
+    }
+
+    const rows = sorted.map((e) =>
+      visibleColumns.map((c) => {
+        const val = cellValue(e, c.key);
+        // Escape quotes and wrap in quotes if value contains comma, quote, or newline
+        if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+          return `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      })
+    );
+
+    const csvContent = "\uFEFF" + [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `prihlasky-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const filtered = enrollments.filter((e) => {
     if (filterCourse && e.courseName !== filterCourse) return false;
     if (filterSection && e.courseSection !== filterSection) return false;
@@ -339,7 +386,7 @@ export default function Admin() {
       case "userName":
         return <span className="font-medium text-foreground">{enrollment.userName}</span>;
       case "userEmail":
-        return <span className="text-foreground">{enrollment.userEmail}</span>;
+        return <span className="font-medium text-foreground">{enrollment.userEmail}</span>;
       case "courseName":
         return <span className="font-medium text-foreground">{enrollment.courseName}</span>;
       case "courseSection":
@@ -381,6 +428,18 @@ export default function Admin() {
           </span>
         </h2>
         <div className="flex items-center gap-2">
+          {/* Export CSV button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5 text-muted-foreground"
+            onClick={exportCsv}
+            disabled={sorted.length === 0}
+          >
+            <Download size={16} />
+            Export CSV
+          </Button>
+
           {/* Filter button */}
           <div className="relative" ref={filterDropdownRef}>
             <Button
@@ -475,12 +534,13 @@ export default function Admin() {
                   {allColumns.map((col) => (
                     <label
                       key={col.key}
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-brand-light-hover transition-colors"
+                      className={`flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${col.locked ? 'opacity-60 cursor-default' : 'cursor-pointer hover:bg-brand-light-hover'}`}
                     >
                       <input
                         type="checkbox"
                         checked={visibleCols.has(col.key)}
                         onChange={() => toggleCol(col.key)}
+                        disabled={col.locked}
                         className="rounded accent-[var(--color-scioedu-primary)]"
                       />
                       {col.label}
