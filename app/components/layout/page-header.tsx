@@ -54,8 +54,8 @@ export function PageHeader({
         <div className={cn(
           "relative overflow-hidden",
           fullWidth
-            ? "rounded-none min-h-[380px] w-screen relative left-1/2 -translate-x-1/2"
-            : "rounded-2xl min-h-[260px]"
+            ? "rounded-none w-screen relative left-1/2 -translate-x-1/2"
+            : "rounded-2xl"
         )}>
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -80,10 +80,10 @@ export function PageHeader({
             />
           )}
           <div className={cn(
-            "z-10 flex items-center",
+            "relative z-10 flex items-center",
             fullWidth
-              ? "absolute inset-0 container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-10"
-              : "relative h-full p-6 lg:p-8"
+              ? "container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-10 min-h-[380px]"
+              : "p-6 lg:p-8 min-h-[260px]"
           )}>
             <div className="flex-1">
               {breadcrumb && (

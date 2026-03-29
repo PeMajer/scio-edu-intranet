@@ -59,7 +59,7 @@ public/
 └── images/                   # Statické obrázky (logo, hero fotky)
 
 sanity/
-└── schemas/                  # Sanity schémata: course, lecturer, sectionPage, blockContent
+└── schemas/                  # Sanity schémata: tag, course, lecturer, sectionPage, blockContent
 
 supabase/
 └── migrations/               # SQL migrace
@@ -82,7 +82,8 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 
 ## Sanity schéma
 
-- `course` — kurz s datem, cenou, lektory, slotem pro termíny
+- `tag` — štítek (title + slug) — referencovaný z kurzů
+- `course` — kurz s datem, cenou, lektory, slotem pro termíny; tagy jako reference na `tag`
 - `lecturer` — profil lektora
 - `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce)
 
