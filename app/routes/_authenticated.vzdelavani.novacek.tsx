@@ -80,14 +80,13 @@ export default function VzdelavaniNovacek() {
         className="-mt-6 mb-8"
       />
 
-      {introText && (
-        <div className="prose prose-gray max-w-none mb-8">
-          <PortableText value={introText} />
-        </div>
-      )}
-
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
+          {introText && (
+            <div className="prose prose-gray max-w-none mb-8">
+              <PortableText value={introText} />
+            </div>
+          )}
           <CourseGrid courses={courses} />
         </div>
 

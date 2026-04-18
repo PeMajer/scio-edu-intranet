@@ -363,7 +363,7 @@ export default function KurzDetail() {
             <div>
               <Card className="sticky top-24 shadow-lg p-6">
                 <PriceDisplay price={course.price} />
-                <Separator className="my-4" />
+                {course.price != null && <Separator className="my-4" />}
                 <Button variant="primary" size="xl" className="w-full" asChild>
                   <a href={course.external_url} target="_blank" rel="noopener noreferrer">
                     Přejít na přihlášení
@@ -453,7 +453,9 @@ export default function KurzDetail() {
 
               <PriceDisplay price={course.price} />
 
-              <Separator className="my-4" />
+              {(course.duration_minutes || course.price != null) && course.dates && course.dates.length > 0 && (
+                <Separator className="my-4" />
+              )}
 
               {course.dates && course.dates.length > 0 && (
                 <>
@@ -513,7 +515,9 @@ export default function KurzDetail() {
 
               {(course.contact_name || course.contact_email) && (
                 <>
-                  <Separator className="my-4" />
+                  {(course.duration_minutes || course.price != null || (course.dates && course.dates.length > 0)) && (
+                    <Separator className="my-4" />
+                  )}
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Kontakt</p>
                   {course.contact_name && (
                     <p className="font-semibold text-foreground">{course.contact_name}</p>
