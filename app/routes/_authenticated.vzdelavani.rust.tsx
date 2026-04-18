@@ -94,23 +94,24 @@ export default function VzdelavaniRust() {
         className="-mt-6 mb-8"
       />
 
-      {introText && (
-        <div className="prose prose-gray max-w-none mb-8">
-          <PortableText value={introText} />
-        </div>
-      )}
-
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
-        <div className={`space-y-10 ${resources.length > 0 ? "lg:col-span-2" : ""}`}>
-          {Object.entries(subsectionConfig).map(([key, config]) => {
-            const courses = subsections[key as keyof typeof subsections];
-            return (
-              <section key={key}>
-                <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
-                <CourseGrid courses={courses} />
-              </section>
-            );
-          })}
+        <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
+          {introText && (
+            <div className="prose prose-gray max-w-none mb-8">
+              <PortableText value={introText} />
+            </div>
+          )}
+          <div className="space-y-10">
+            {Object.entries(subsectionConfig).map(([key, config]) => {
+              const courses = subsections[key as keyof typeof subsections];
+              return (
+                <section key={key}>
+                  <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
+                  <CourseGrid courses={courses} />
+                </section>
+              );
+            })}
+          </div>
         </div>
 
         {resources.length > 0 && (

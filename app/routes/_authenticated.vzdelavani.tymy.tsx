@@ -81,14 +81,13 @@ export default function VzdelavaniTymy() {
         className="-mt-6 mb-8"
       />
 
-      {introText && (
-        <div className="prose prose-gray max-w-none mb-8">
-          <PortableText value={introText} />
-        </div>
-      )}
-
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
+          {introText && (
+            <div className="prose prose-gray max-w-none mb-8">
+              <PortableText value={introText} />
+            </div>
+          )}
           {courses.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
