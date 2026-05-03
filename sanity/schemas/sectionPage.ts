@@ -55,6 +55,13 @@ export const sectionPage = {
       options: { hotspot: true },
       description: 'Hero obrázek zobrazený v hlavičce stránky sekce',
     },
+    {
+      name: 'highlight_boxes',
+      title: 'Highlight boxy (pod stránkou)',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'highlightBox' }] }],
+      description: 'Boxy s CTA, které se zobrazí pod sebou na konci stránky sekce.',
+    },
     { name: 'is_visible', title: 'Viditelná', type: 'boolean', initialValue: true },
     { name: 'order', title: 'Pořadí', type: 'number', initialValue: 0 },
   ],

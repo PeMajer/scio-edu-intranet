@@ -61,7 +61,7 @@ public/
 └── images/                   # Statické obrázky (logo, hero fotky)
 
 sanity/
-└── schemas/                  # Sanity schémata: tag, course, lecturer, sectionPage, blockContent
+└── schemas/                  # Sanity schémata: tag, highlightBox, course, lecturer, sectionPage, blockContent
 
 supabase/
 └── migrations/               # SQL migrace
@@ -86,9 +86,10 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 ## Sanity schéma
 
 - `tag` — štítek (title + slug) — referencovaný z kurzů
-- `course` — kurz s rich-text poli (`highlight: highlightContent`, `description: blockContent`, `target_audience: blockContent`, `how_it_works: blockContent`), `status: 'open' | 'preparing'`, dates s alternativním `date_start_text`, `gallery` (image array, validace max 5 MB / 4000 px), `testimonials` (text array, plain text)
+- `highlightBox` — reusable CTA box (heading, description, variant `accent`/`primary`, button s `linkType: course | section | url`) — referencovaný z `course.highlight_boxes` a `sectionPage.highlight_boxes`. Renderování: `<HighlightBoxList>` na konci stránky, helper `resolveButtonHref` v `app/lib/highlight-box.ts` (interní URL přes `<Link>`, externí přes `<a target="_blank">`)
+- `course` — kurz s rich-text poli (`highlight: highlightContent`, `description: blockContent`, `target_audience: blockContent`, `how_it_works: blockContent`), `status: 'open' | 'preparing'`, dates s alternativním `date_start_text`, `gallery` (image array, validace max 5 MB / 4000 px), `testimonials` (text array, plain text), `highlight_boxes` (array reference → highlightBox)
 - `lecturer` — profil lektora
-- `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce)
+- `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce), `highlight_boxes` (array reference → highlightBox)
 - `blockContent` — sdílený rich-text typ (bloky, obrázky, odkazy)
 - `highlightContent` — restricted rich-text (jen tučné a kurzíva, žádné bloky/obrázky) — používá se pro krátké hero/card popisky
 - Studio konfigurace je v `scioedu/` (deploy: `cd scioedu && npx sanity deploy`)

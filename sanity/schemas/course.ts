@@ -220,6 +220,13 @@ export const course = {
       initialValue: 'open',
       description: 'U kurzu „Připravujeme" se zobrazí badge na kartě a přihláška bude označena jako PŘEDBĚŽNÁ.',
     },
+    {
+      name: 'highlight_boxes',
+      title: 'Highlight boxy (pod stránkou)',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'highlightBox' }] }],
+      description: 'Boxy s CTA, které se zobrazí pod sebou na konci stránky kurzu.',
+    },
     { name: 'is_published', title: 'Publikováno', type: 'boolean', initialValue: true },
     {
       name: 'is_external',

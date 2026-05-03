@@ -12,7 +12,7 @@ export function CourseTestimonials({ testimonials }: { testimonials: string[] })
       >
         {testimonials.map((text, idx) => (
           <div key={idx} className="shrink-0 w-[92%] md:w-auto snap-start">
-            <HighlightBox variant="primary" className="h-full">
+            <HighlightBox variant="primary" withBorder={false} className="h-full">
               <p className="italic text-foreground/85 leading-relaxed whitespace-pre-line">
                 „{text}“
               </p>

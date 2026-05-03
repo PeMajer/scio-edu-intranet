@@ -2,6 +2,7 @@ import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import type { AppLoadContext } from "@remix-run/cloudflare";
 import type { TypedObject } from "@portabletext/types";
+import type { HighlightBoxDoc } from "~/lib/highlight-box";
 
 export function createSanityClient(context: AppLoadContext) {
   return createClient({
@@ -72,6 +73,7 @@ export type Course = {
   }>;
   testimonials?: string[];
   external_url?: string;
+  highlight_boxes?: HighlightBoxDoc[];
   is_published: boolean;
   is_external: boolean;
 };
@@ -96,6 +98,7 @@ export type SectionPage = {
     url: string;
     type: string;
   }>;
+  highlight_boxes?: HighlightBoxDoc[];
   is_visible: boolean;
   order: number;
 };

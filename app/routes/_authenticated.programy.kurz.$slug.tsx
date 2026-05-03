@@ -32,6 +32,8 @@ import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 import { CourseGallery, type GalleryPhoto } from "~/components/course-gallery";
 import { CourseTestimonials } from "~/components/course-testimonials";
+import { HighlightBoxList } from "~/components/highlight-box-list";
+import { HIGHLIGHT_BOXES_PROJECTION } from "~/lib/highlight-box";
 
 function formatDuration(minutes: number): string {
   const days = Math.floor(minutes / (60 * 24));
@@ -79,7 +81,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         hotspot,
         crop,
         asset->{ _id, metadata { dimensions } }
-      }
+      },
+      ${HIGHLIGHT_BOXES_PROJECTION}
     }`,
     { slug: params.slug }
   );
@@ -621,6 +624,8 @@ export default function KurzDetail() {
             {course.testimonials && course.testimonials.length > 0 && (
               <CourseTestimonials testimonials={course.testimonials} />
             )}
+
+            <HighlightBoxList boxes={course.highlight_boxes} />
           </div>
 
           {/* Right column — sticky sidebar */}

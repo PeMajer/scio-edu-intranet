@@ -16,10 +16,17 @@ import {
 } from "~/components/ui/breadcrumb";
 import { Target, Wrench, Sparkles } from "lucide-react";
 import { RichText } from "~/components/rich-text";
+import { HighlightBoxList } from "~/components/highlight-box-list";
+import { HIGHLIGHT_BOXES_PROJECTION, type HighlightBoxDoc } from "~/lib/highlight-box";
 import type { Course } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
-type SectionPage = { intro_text?: any[]; resources?: Resource[]; cover_image?: any };
+type SectionPage = {
+  intro_text?: any[];
+  resources?: Resource[];
+  cover_image?: any;
+  highlight_boxes?: HighlightBoxDoc[];
+};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
@@ -31,7 +38,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       `*[_type == "course" && section == "rust" && is_published == true] | order(_createdAt desc)`
     ),
     sanity.fetch<SectionPage | null>(
-      `*[_type == "sectionPage" && section_key == "rust" && is_visible == true][0]{ intro_text, resources, cover_image }`
+      `*[_type == "sectionPage" && section_key == "rust" && is_visible == true][0]{
+        intro_text,
+        resources,
+        cover_image,
+        ${HIGHLIGHT_BOXES_PROJECTION}
+      }`
     ),
   ]);
 
@@ -56,6 +68,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     subsections,
     introText: sectionPage?.intro_text ?? null,
     resources: sectionPage?.resources ?? [],
+    highlightBoxes: sectionPage?.highlight_boxes ?? [],
     coverImageUrl,
   }, { headers });
 }
@@ -67,7 +80,7 @@ const subsectionConfig = {
 };
 
 export default function VzdelavaniRust() {
-  const { subsections, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
+  const { subsections, introText, resources, highlightBoxes, coverImageUrl } = useLoaderData<typeof loader>();
 
   return (
     <>
@@ -108,6 +121,7 @@ export default function VzdelavaniRust() {
               );
             })}
           </div>
+          <HighlightBoxList boxes={highlightBoxes} />
         </div>
 
         {resources.length > 0 && (

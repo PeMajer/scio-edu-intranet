@@ -6,6 +6,7 @@ interface HighlightBoxProps {
   children: React.ReactNode;
   className?: string;
   variant?: Variant;
+  withBorder?: boolean;
 }
 
 const variantTokens: Record<Variant, string> = {
@@ -13,9 +14,13 @@ const variantTokens: Record<Variant, string> = {
   primary: "var(--color-scioedu-primary)",
 };
 
-export function HighlightBox({ children, className, variant = "accent" }: HighlightBoxProps) {
+export function HighlightBox({
+  children,
+  className,
+  variant = "accent",
+  withBorder = true,
+}: HighlightBoxProps) {
   const color = variantTokens[variant];
-  const withBorder = variant === "accent";
   return (
     <div
       className={cn(
