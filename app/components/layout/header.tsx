@@ -1,5 +1,5 @@
 import { Form, Link, NavLink, useSubmit } from "@remix-run/react";
-import { Menu, LogOut, Shield, X, ChevronDown, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
+import { Menu, LogOut, Shield, User, X, ChevronDown, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "~/components/logo";
 import { Button } from "~/components/ui/button";
@@ -230,17 +230,21 @@ function UserMenu({ user, profile }: HeaderProps) {
           <p className="font-semibold text-sm text-foreground">{profile?.full_name ?? "Uživatel"}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
         </div>
+        <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
+          <Link to="/profil" className="flex items-center gap-2.5 text-sm">
+            <User className="text-brand-primary" size={16} />
+            Můj profil
+          </Link>
+        </DropdownMenuItem>
         {profile?.role === "admin" && (
-          <>
-            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
-              <Link to="/admin" className="flex items-center gap-2.5 text-sm">
-                <Shield className="text-brand-primary" size={16} />
-                Administrace
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1" />
-          </>
+          <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
+            <Link to="/admin" className="flex items-center gap-2.5 text-sm">
+              <Shield className="text-brand-primary" size={16} />
+              Administrace
+            </Link>
+          </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator className="my-1" />
         <DropdownMenuItem
           onSelect={() => submit(null, { method: "post", action: "/auth/logout" })}
           className="group/logout rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
@@ -296,8 +300,16 @@ function MobileMenu({
               {item.label}
             </MobileNavLink>
           ))}
-          {profile?.role === "admin" && (
-            <div className="border-t border-border mt-4 pt-4 mx-6">
+          <div className="border-t border-border mt-4 pt-4 mx-6">
+            <NavLink
+              to="/profil"
+              onClick={onClose}
+              className="flex items-center gap-2 py-3 text-sm text-muted-foreground hover:text-brand-primary transition-colors"
+            >
+              <User size={16} />
+              Můj profil
+            </NavLink>
+            {profile?.role === "admin" && (
               <NavLink
                 to="/admin"
                 onClick={onClose}
@@ -306,8 +318,8 @@ function MobileMenu({
                 <Shield size={16} />
                 Administrace
               </NavLink>
-            </div>
-          )}
+            )}
+          </div>
         </nav>
 
         {/* Profile footer */}

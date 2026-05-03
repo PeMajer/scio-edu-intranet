@@ -20,15 +20,18 @@ export type Course = {
   _id: string;
   title: string;
   slug: { current: string };
-  highlight?: string;
+  highlight?: any[];
   description?: any[];
-  target_audience?: string;
+  target_audience?: any[];
+  how_it_works?: any[];
   benefits?: string[];
   section: string;
   subsection?: string;
   tags?: string[];
+  status?: "open" | "preparing";
   dates?: Array<{
-    date_start: string;
+    date_start?: string;
+    date_start_text?: string;
     date_end: string;
     location: string;
     capacity: number;

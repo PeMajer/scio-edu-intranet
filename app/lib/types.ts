@@ -4,6 +4,8 @@ export type Profile = {
   department?: string;
   school?: string;
   avatar_url?: string;
+  birth_date?: string | null;
+  birth_place?: string | null;
   role: "user" | "admin";
   created_at: string;
   updated_at: string;

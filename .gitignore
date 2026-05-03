@@ -17,6 +17,9 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 
+# Sanity dataset backups (large tarballs)
+sanity-backup-*.tar.gz
+
 # Remix build output
 /public/build/
 /functions/

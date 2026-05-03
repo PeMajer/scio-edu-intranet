@@ -8,12 +8,12 @@ export const course = {
     {
       name: 'highlight',
       title: 'Krátký highlight',
-      type: 'text',
-      rows: 2,
-      description: 'O čem kurz je — krátký popis pro kartu a přehled (1–2 věty)',
+      type: 'highlightContent',
+      description: 'O čem kurz je — krátký popis pro kartu a přehled (1–2 věty). Podporuje tučné a kurzívu.',
     },
     { name: 'description', title: 'Podrobný popis', type: 'blockContent' },
-    { name: 'target_audience', title: 'Pro koho je určen', type: 'text', rows: 3 },
+    { name: 'target_audience', title: 'Pro koho je určen', type: 'blockContent' },
+    { name: 'how_it_works', title: 'Jak kurz probíhá', type: 'blockContent' },
     {
       name: 'benefits',
       title: 'Co účastník získá / co si odnese',
@@ -69,6 +69,13 @@ export const course = {
               title: 'Začátek',
               type: 'datetime',
               options: { dateFormat: 'DD.MM.YYYY', timeFormat: 'HH:mm', timeStep: 15 },
+              description: 'Pokud má kurz pevné datum začátku. Pokud chcete místo data zobrazit volný popis, vyplňte „Volný popis začátku" níže.',
+            },
+            {
+              name: 'date_start_text',
+              title: 'Volný popis začátku',
+              type: 'string',
+              description: 'Pokud vyplněno, zobrazí se místo přesného data (např. „začátek jara").',
             },
             {
               name: 'date_end',
@@ -86,16 +93,16 @@ export const course = {
             },
           ],
           preview: {
-            select: { start: 'date_start', end: 'date_end', location: 'location', capacity: 'capacity', note: 'note' },
-            prepare({ start, end, location, capacity, note }: { start?: string; end?: string; location?: string; capacity?: number; note?: string }) {
+            select: { start: 'date_start', startText: 'date_start_text', end: 'date_end', location: 'location', capacity: 'capacity', note: 'note' },
+            prepare({ start, startText, end, location, capacity, note }: { start?: string; startText?: string; end?: string; location?: string; capacity?: number; note?: string }) {
               const fmt = (v?: string) => {
                 if (!v) return null;
                 const d = new Date(v);
                 return isNaN(d.getTime()) ? null : d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
               };
-              const startFmt = fmt(start);
+              const startFmt = startText || fmt(start);
               const endFmt = fmt(end);
-              const title = startFmt && endFmt
+              const title = startFmt && endFmt && !startText
                 ? `${startFmt} – ${endFmt}`
                 : startFmt || 'Datum neuvedeno';
               const parts = [location, capacity ? `${capacity} míst` : null, note].filter(Boolean);
@@ -145,6 +152,19 @@ export const course = {
       title: 'Externí odkaz',
       type: 'url',
       description: 'Pokud kurz vede na externí web (scioedu.cz apod.)',
+    },
+    {
+      name: 'status',
+      title: 'Stav kurzu',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Otevřený', value: 'open' },
+          { title: 'Připravujeme', value: 'preparing' },
+        ],
+      },
+      initialValue: 'open',
+      description: 'U kurzu „Připravujeme" se zobrazí badge na kartě a přihláška bude označena jako PŘEDBĚŽNÁ.',
     },
     { name: 'is_published', title: 'Publikováno', type: 'boolean', initialValue: true },
     {

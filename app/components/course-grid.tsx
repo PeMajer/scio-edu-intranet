@@ -1,18 +1,26 @@
 import { CourseCard } from "~/components/course-card";
+import { portableTextToPlain } from "~/lib/portable-text";
 
 interface CourseItem {
   _id: string;
   title: string;
   slug: { current: string };
-  highlight?: string;
+  highlight?: unknown;
   price?: number;
   is_external?: boolean;
   imageUrl?: string | null;
+  status?: "open" | "preparing";
 }
 
 interface CourseGridProps {
   courses: CourseItem[];
   emptyMessage?: string;
+}
+
+function highlightToString(value: unknown): string | undefined {
+  if (typeof value === "string") return value || undefined;
+  const plain = portableTextToPlain(value);
+  return plain || undefined;
 }
 
 export function CourseGrid({
@@ -34,10 +42,11 @@ export function CourseGrid({
           key={course._id}
           title={course.title}
           slug={course.slug.current}
-          highlight={course.highlight}
+          highlight={highlightToString(course.highlight)}
           price={course.price}
           isExternal={course.is_external}
           imageUrl={course.imageUrl ?? undefined}
+          status={course.status}
         />
       ))}
     </div>

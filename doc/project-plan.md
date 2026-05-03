@@ -161,7 +161,7 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
 ```
 /kalendar                               → Kalendář akcí (Google Calendar)
 /moje-kurzy                             → Moje přihlášené/absolvované kurzy
-/profil                                 → Profil uživatele (volitelné)
+/profil                                 → Profil uživatele (datum/místo narození pro certifikáty)
 ```
 
 ---
