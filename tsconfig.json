@@ -7,6 +7,16 @@
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx"
   ],
+  "exclude": [
+    "node_modules",
+    "build",
+    ".wrangler",
+    "public/build",
+    "functions",
+    "sanity.config.ts",
+    "sanity.cli.ts",
+    "vite.config.ts"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@remix-run/cloudflare", "@cloudflare/workers-types"],
