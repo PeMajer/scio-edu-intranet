@@ -62,7 +62,7 @@ export default function Koncepce() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {resources.map((category) => (
-          <div key={category.type} className="rounded-2xl border border-border overflow-hidden">
+          <div key={category.type} className="flex flex-col rounded-2xl border border-border overflow-hidden">
             <div className="relative border-b border-border">
               <img
                 src={category.image}
@@ -74,7 +74,7 @@ export default function Koncepce() {
                 style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 60%, transparent) 0%, transparent 100%)' }}
               />
             </div>
-            <div className="bg-card p-5 rounded-b-2xl">
+            <div className="bg-card p-5 rounded-b-2xl grow">
               <SectionHeader icon={category.icon} title={category.title} className="mb-4" />
               {category.items.map((item, idx) => (
                 <a
