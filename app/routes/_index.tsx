@@ -10,7 +10,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     if (!context.env?.SUPABASE_URL || !context.env?.SUPABASE_ANON_KEY) {
       return json({
         supabaseConfigured: false,
-        message: "Čekám na konfiguraci Supabase..."
+        message: "Čekám na konfiguraci Supabase..." as string | null,
       });
     }
 
@@ -21,12 +21,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return redirect("/portal", { headers });
     }
 
-    return json({ supabaseConfigured: true }, { headers });
-  } catch (error: any) {
+    return json(
+      { supabaseConfigured: true, message: null as string | null },
+      { headers }
+    );
+  } catch (error) {
     console.error("Loader error:", error);
     return json({
       supabaseConfigured: false,
-      message: "Chyba: " + (error?.message || "Neznámá chyba")
+      message: ("Chyba: " + (error instanceof Error ? error.message : "Neznámá chyba")) as string | null,
     });
   }
 }
@@ -54,8 +57,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (data.url) {
         return redirect(data.url, { headers });
       }
-    } catch (error: any) {
-      return json({ error: error?.message || "Chyba při přihlašování" });
+    } catch (error) {
+      return json({
+        error: error instanceof Error ? error.message : "Chyba při přihlašování",
+      });
     }
   }
 

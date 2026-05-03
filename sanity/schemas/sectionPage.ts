@@ -1,10 +1,12 @@
+import type { SanityRule } from '../types';
+
 export const sectionPage = {
   name: 'sectionPage',
   title: 'Stránka sekce',
   type: 'document',
   fields: [
-    { name: 'title', title: 'Název sekce', type: 'string', validation: (Rule: any) => Rule.required() },
-    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' }, validation: (Rule: any) => Rule.required() },
+    { name: 'title', title: 'Název sekce', type: 'string', validation: (Rule: SanityRule) => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' }, validation: (Rule: SanityRule) => Rule.required() },
     { name: 'intro_text', title: 'Úvodní text', type: 'blockContent' },
     {
       name: 'section_key',

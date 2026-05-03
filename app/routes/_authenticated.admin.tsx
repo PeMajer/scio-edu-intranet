@@ -66,7 +66,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .order("enrolled_at", { ascending: false });
 
   // Fetch emails via service_role client (anon key can't access auth.users)
-  const env = context.env as Record<string, string>;
+  const env = context.env;
   const emailMap = new Map<string, string>();
   if (env.SUPABASE_SERVICE_ROLE_KEY) {
     try {

@@ -1,3 +1,5 @@
+import type { SanityRule } from '../types';
+
 export const tag = {
   name: 'tag',
   title: 'Štítek',
@@ -7,14 +9,14 @@ export const tag = {
       name: 'title',
       title: 'Název',
       type: 'string',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
     },
     {
       name: 'value',
       title: 'Hodnota (slug)',
       type: 'slug',
       options: { source: 'title' },
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
       description: 'Unikátní identifikátor štítku (generuje se z názvu)',
     },
   ],

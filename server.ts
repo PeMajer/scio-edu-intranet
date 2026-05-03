@@ -1,9 +1,12 @@
-import { createRequestHandler } from "@remix-run/cloudflare";
+import { createRequestHandler, type ServerBuild } from "@remix-run/cloudflare";
 import * as build from "@remix-run/dev/server-build";
+import type { Env } from "./app/load-context";
 
-// @ts-ignore
-export const onRequest: PagesFunction = async (context) => {
-  const handler = createRequestHandler(build as any, process.env.NODE_ENV);
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const handler = createRequestHandler(
+    build as unknown as ServerBuild,
+    process.env.NODE_ENV
+  );
   return handler(context.request, {
     env: context.env,
     ctx: context,
