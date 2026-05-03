@@ -34,7 +34,9 @@ function loadEnv(filePath: string) {
 
 // Try .env in cwd, then parent (so the script works whether run from
 // project root or from scioedu/ where the Sanity CLI lives).
-loadEnv(resolve(process.cwd(), ".env")) || loadEnv(resolve(process.cwd(), "..", ".env"));
+if (!loadEnv(resolve(process.cwd(), ".env"))) {
+  loadEnv(resolve(process.cwd(), "..", ".env"));
+}
 
 // Prefer the user token injected by `sanity exec --with-user-token` (admin/editor),
 // fall back to .env tokens (which are typically Viewer / read-only).
