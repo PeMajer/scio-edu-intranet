@@ -14,10 +14,10 @@ import {
 import { cn } from "~/lib/cn";
 
 const educationMeta: Record<string, { title: string; href: string; icon: LucideIcon }> = {
-  novacek: { title: "Jsem ve ScioPolis nováček", href: "/vzdelavani/novacek", icon: GraduationCap },
-  rust: { title: "Vzdělávání a růst pro každého", href: "/vzdelavani/rust", icon: Sparkles },
-  tymy: { title: "Rozvoj pro týmy a kvadriády", href: "/vzdelavani/tymy", icon: Users },
-  cesty: { title: "Vzdělávací cesty", href: "/vzdelavani/cesty", icon: Map },
+  novacek: { title: "Jsem ve ScioPolis nováček", href: "/programy/novacek", icon: GraduationCap },
+  rust: { title: "Vzdělávání a růst pro každého", href: "/programy/rust", icon: Sparkles },
+  tymy: { title: "Rozvoj pro týmy a kvadriády", href: "/programy/tymy", icon: Users },
+  cesty: { title: "Vzdělávací cesty", href: "/programy/cesty", icon: Map },
 };
 
 const educationOrder = ["novacek", "rust", "tymy", "cesty"];
@@ -36,8 +36,8 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { label: "Dashboard", href: "/portal" },
-  { label: "Vzdělávání", href: "/vzdelavani" },
+  { label: "Rozcestník", href: "/portal" },
+  { label: "Programy", href: "/programy" },
   { label: "Moje kurzy", href: "/moje-kurzy" },
   { label: "Kalendář", href: "/kalendar" },
   { label: "Koncepce", href: "/koncepce" },
@@ -62,11 +62,11 @@ function DesktopNavLink({ href, children }: { href: string; children: React.Reac
   );
 }
 
-function DesktopEducationDropdown({ categories }: { categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }> }) {
+function DesktopEducationDropdown({ categories, label }: { categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }>; label: string }) {
   return (
     <div className="relative group">
       <NavLink
-        to="/vzdelavani"
+        to="/programy"
         className={({ isActive }) =>
           cn(
             "text-sm px-3 py-2 font-medium transition-colors border-b-2 pb-1 flex items-center",
@@ -77,7 +77,7 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
         }
         style={({ isActive }) => ({ borderBottomColor: isActive ? 'var(--color-scioedu-accent)' : 'transparent' })}
       >
-        Vzdělávání
+        {label}
         <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
       </NavLink>
 
@@ -105,7 +105,7 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
         })}
         <div className="border-t border-border mt-1 pt-1">
           <Link
-            to="/vzdelavani"
+            to="/programy"
             className="px-3 py-2 text-xs text-brand-primary font-medium hover:text-brand-primary/80 flex items-center gap-1"
           >
             Všechny kategorie →
@@ -304,8 +304,8 @@ export function Header({ user, profile, educationSections }: HeaderProps) {
             {/* Desktop nav */}
             <nav className="hidden nav:flex items-center gap-1">
               {navItems.map((item) =>
-                item.label === "Vzdělávání" && categories.length > 0 ? (
-                  <DesktopEducationDropdown key={item.href} categories={categories} />
+                item.href === "/programy" && categories.length > 0 ? (
+                  <DesktopEducationDropdown key={item.href} categories={categories} label={item.label} />
                 ) : (
                   <DesktopNavLink key={item.href} href={item.href}>
                     {item.label}

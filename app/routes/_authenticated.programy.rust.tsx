@@ -3,6 +3,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
+import { SectionHeader } from "~/components/layout/section-header";
 import { CourseGrid } from "~/components/course-grid";
 import { ResourcesCard } from "~/components/resources-card";
 import {
@@ -13,7 +14,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { Users } from "lucide-react";
+import { Target, Wrench, Sparkles } from "lucide-react";
 import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 
@@ -27,10 +28,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const imageBuilder = getImageUrlBuilder(context);
   const [courses, sectionPage] = await Promise.all([
     sanity.fetch<Course[]>(
-      `*[_type == "course" && section == "tymy" && is_published == true] | order(_createdAt desc)`
+      `*[_type == "course" && section == "rust" && is_published == true] | order(_createdAt desc)`
     ),
     sanity.fetch<SectionPage | null>(
-      `*[_type == "sectionPage" && section_key == "tymy" && is_visible == true][0]{ intro_text, resources, cover_image }`
+      `*[_type == "sectionPage" && section_key == "rust" && is_visible == true][0]{ intro_text, resources, cover_image }`
     ),
   ]);
 
@@ -41,39 +42,51 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       : null,
   }));
 
+  const subsections = {
+    sciocile: coursesWithImages.filter((c) => c.subsection === "sciocile"),
+    remeslo: coursesWithImages.filter((c) => c.subsection === "remeslo"),
+    "osobni-rozvoj": coursesWithImages.filter((c) => c.subsection === "osobni-rozvoj"),
+  };
+
   const coverImageUrl = sectionPage?.cover_image
     ? imageBuilder.image(sectionPage.cover_image).width(1200).height(400).format("webp").url()
     : null;
 
   return json({
-    courses: coursesWithImages,
+    subsections,
     introText: sectionPage?.intro_text ?? null,
     resources: sectionPage?.resources ?? [],
     coverImageUrl,
   }, { headers });
 }
 
-export default function VzdelavaniTymy() {
-  const { courses, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
+const subsectionConfig = {
+  sciocile: { title: "Kurzy na ScioCíle", icon: Target },
+  remeslo: { title: "Řemeslo průvodce", icon: Wrench },
+  "osobni-rozvoj": { title: "Osobní rozvoj", icon: Sparkles },
+};
+
+export default function VzdelavaniRust() {
+  const { subsections, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
 
   return (
     <>
       <PageHeader
         fullWidth
-        title="Rozvoj pro týmy a kvadriády"
-        description="Specializované programy pro týmovou spolupráci a rozvoj kvadriád"
-        imageUrl={coverImageUrl || "/images/hero-team.jpg"}
+        title="Vzdělávání a růst pro každého"
+        description="Kurzy zaměřené na osobní rozvoj a odborné dovednosti"
+        imageUrl={coverImageUrl || "/images/hero-learning.jpg"}
         breadcrumb={
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-                  <Link to="/vzdelavani">Vzdělávání</Link>
+                  <Link to="/programy">Programy</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-white/40" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-white/80 font-medium">Týmy</BreadcrumbPage>
+                <BreadcrumbPage className="text-white/80 font-medium">Osobní růst</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -84,19 +97,17 @@ export default function VzdelavaniTymy() {
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
           {introText && <RichText value={introText} className="mb-8" />}
-          {courses.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Momentálně nejsou k dispozici žádné kurzy
-              </h3>
-              <p className="text-muted-foreground">Brzy přidáme nové týmové programy</p>
-            </div>
-          ) : (
-            <CourseGrid courses={courses} />
-          )}
+          <div className="space-y-10">
+            {Object.entries(subsectionConfig).map(([key, config]) => {
+              const courses = subsections[key as keyof typeof subsections];
+              return (
+                <section key={key}>
+                  <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
+                  <CourseGrid courses={courses} />
+                </section>
+              );
+            })}
+          </div>
         </div>
 
         {resources.length > 0 && (

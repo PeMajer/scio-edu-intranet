@@ -13,6 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
+import { Users } from "lucide-react";
 import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 
@@ -26,10 +27,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const imageBuilder = getImageUrlBuilder(context);
   const [courses, sectionPage] = await Promise.all([
     sanity.fetch<Course[]>(
-      `*[_type == "course" && section == "novacek" && is_published == true] | order(_createdAt desc)`
+      `*[_type == "course" && section == "tymy" && is_published == true] | order(_createdAt desc)`
     ),
     sanity.fetch<SectionPage | null>(
-      `*[_type == "sectionPage" && section_key == "novacek" && is_visible == true][0]{ intro_text, resources, cover_image }`
+      `*[_type == "sectionPage" && section_key == "tymy" && is_visible == true][0]{ intro_text, resources, cover_image }`
     ),
   ]);
 
@@ -52,27 +53,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }, { headers });
 }
 
-export default function VzdelavaniNovacek() {
+export default function VzdelavaniTymy() {
   const { courses, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
 
   return (
     <>
       <PageHeader
         fullWidth
-        title="Jsem ve ScioPolis nováček"
-        description="Úvodní kurzy a informace pro nové zaměstnance"
-        imageUrl={coverImageUrl || "/images/hero-classroom.jpg"}
+        title="Rozvoj pro týmy a kvadriády"
+        description="Specializované programy pro týmovou spolupráci a rozvoj kvadriád"
+        imageUrl={coverImageUrl || "/images/hero-team.jpg"}
         breadcrumb={
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-                  <Link to="/vzdelavani">Vzdělávání</Link>
+                  <Link to="/programy">Programy</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-white/40" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-white/80 font-medium">Nováček</BreadcrumbPage>
+                <BreadcrumbPage className="text-white/80 font-medium">Týmy</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -83,7 +84,19 @@ export default function VzdelavaniNovacek() {
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
           {introText && <RichText value={introText} className="mb-8" />}
-          <CourseGrid courses={courses} />
+          {courses.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Momentálně nejsou k dispozici žádné kurzy
+              </h3>
+              <p className="text-muted-foreground">Brzy přidáme nové týmové programy</p>
+            </div>
+          ) : (
+            <CourseGrid courses={courses} />
+          )}
         </div>
 
         {resources.length > 0 && (

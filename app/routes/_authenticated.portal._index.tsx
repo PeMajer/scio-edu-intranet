@@ -51,7 +51,7 @@ const quickLinks = [
   {
     label: "Pro nováčky",
     desc: "Úvod do ScioPolis a základní kurzy",
-    href: "/vzdelavani/novacek",
+    href: "/programy/novacek",
     icon: GraduationCap,
     color: "from-primary to-primary/80",
     image: "/images/hero-classroom.jpg",
@@ -59,7 +59,7 @@ const quickLinks = [
   {
     label: "Osobní růst",
     desc: "Kurzy pro rozvoj průvodcovských dovedností",
-    href: "/vzdelavani/rust",
+    href: "/programy/rust",
     icon: Sparkles,
     color: "from-secondary to-secondary/80",
     image: "/images/hero-learning.jpg",
@@ -67,7 +67,7 @@ const quickLinks = [
   {
     label: "Pro týmy",
     desc: "Programy pro celé průvodcovny a kvadriády",
-    href: "/vzdelavani/tymy",
+    href: "/programy/tymy",
     icon: Users,
     color: "from-muted to-muted/80",
     image: "/images/hero-team.jpg",
@@ -107,8 +107,8 @@ export default function Portal() {
         <div className="lg:col-span-2 space-y-6">
           {/* Section header */}
           <div className="flex items-center justify-between">
-            <SectionHeader icon={BookOpen} title="Vzdělávání" />
-            <Link to="/vzdelavani" className="text-brand-primary font-medium text-sm hover:opacity-80 transition-opacity flex items-center gap-1">
+            <SectionHeader icon={BookOpen} title="Programy" />
+            <Link to="/programy" className="text-brand-primary font-medium text-sm hover:opacity-80 transition-opacity flex items-center gap-1">
               Všechny kategorie
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -139,7 +139,7 @@ export default function Portal() {
               </p>
             </div>
             <Button variant="primary" className="shrink-0 w-full sm:w-auto" asChild>
-              <Link to="/vzdelavani">Prohlédnout kurzy</Link>
+              <Link to="/programy">Prohlédnout kurzy</Link>
             </Button>
           </HighlightBox>
         </div>

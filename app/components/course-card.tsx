@@ -4,7 +4,7 @@ import { Badge } from "~/components/ui/badge";
 
 interface CourseCardProps {
   title: string;
-  /** Slug kurzu — generuje href `/vzdelavani/kurz/{slug}`. Ignorováno pokud je zadán `href`. */
+  /** Slug kurzu — generuje href `/programy/kurz/{slug}`. Ignorováno pokud je zadán `href`. */
   slug?: string;
   /** Přímý odkaz — má přednost před `slug`. */
   href?: string;
@@ -48,7 +48,7 @@ export function CourseCard({
   status,
 }: CourseCardProps) {
   const bgImage = imageUrl || getPlaceholderImage(title);
-  const to = href || `/vzdelavani/kurz/${slug}`;
+  const to = href || `/programy/kurz/${slug}`;
 
   const subtitle = highlight
     || (price === 0 ? "Zdarma" : price ? `${price.toLocaleString("cs-CZ")} Kč` : "");

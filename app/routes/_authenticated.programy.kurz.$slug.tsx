@@ -384,10 +384,10 @@ function TermAction({
 }
 
 const sectionLabels: Record<string, { label: string; href: string }> = {
-  novacek: { label: "Nováček", href: "/vzdelavani/novacek" },
-  rust: { label: "Osobní růst", href: "/vzdelavani/rust" },
-  tymy: { label: "Pro týmy", href: "/vzdelavani/tymy" },
-  cesty: { label: "Vzdělávací cesty", href: "/vzdelavani/cesty" },
+  novacek: { label: "Nováček", href: "/programy/novacek" },
+  rust: { label: "Osobní růst", href: "/programy/rust" },
+  tymy: { label: "Pro týmy", href: "/programy/tymy" },
+  cesty: { label: "Vzdělávací cesty", href: "/programy/cesty" },
 };
 
 function HeroBreadcrumb({ section, title }: { section: { label: string; href: string } | null; title: string }) {
@@ -396,7 +396,7 @@ function HeroBreadcrumb({ section, title }: { section: { label: string; href: st
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-            <Link to="/vzdelavani">Vzdělávání</Link>
+            <Link to="/programy">Programy</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {section && (
