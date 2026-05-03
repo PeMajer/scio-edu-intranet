@@ -1,6 +1,7 @@
 import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import type { AppLoadContext } from "@remix-run/cloudflare";
+import type { TypedObject } from "@portabletext/types";
 
 export function createSanityClient(context: AppLoadContext) {
   return createClient({
@@ -16,14 +17,20 @@ export function getImageUrlBuilder(context: AppLoadContext) {
   return imageUrlBuilder(client);
 }
 
+/** PortableText block content — array of typed Sanity blocks, rendered via @portabletext/react */
+export type PortableTextValue = TypedObject[];
+
+/** Sanity image asset reference — opaque, processed via getImageUrlBuilder() */
+export type SanityImage = unknown;
+
 export type Course = {
   _id: string;
   title: string;
   slug: { current: string };
-  highlight?: any[];
-  description?: any[];
-  target_audience?: any[];
-  how_it_works?: any[];
+  highlight?: PortableTextValue;
+  description?: PortableTextValue;
+  target_audience?: PortableTextValue;
+  how_it_works?: PortableTextValue;
   benefits?: string[];
   section: string;
   subsection?: string;
@@ -42,13 +49,13 @@ export type Course = {
   lecturers?: Array<{
     _id: string;
     name: string;
-    photo?: any;
+    photo?: SanityImage;
     bio?: string;
     email?: string;
   }>;
   contact_name?: string;
   contact_email?: string;
-  image?: any;
+  image?: SanityImage;
   materials?: Array<{
     label: string;
     url: string;
@@ -62,7 +69,7 @@ export type Lecturer = {
   _id: string;
   name: string;
   slug: { current: string };
-  photo?: any;
+  photo?: SanityImage;
   bio?: string;
   email?: string;
 };
@@ -71,7 +78,7 @@ export type SectionPage = {
   _id: string;
   title: string;
   slug: { current: string };
-  intro_text?: any[];
+  intro_text?: PortableTextValue;
   section_key: string;
   resources?: Array<{
     label: string;

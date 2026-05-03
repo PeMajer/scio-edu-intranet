@@ -123,7 +123,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }, { headers });
 }
 
-export async function action({ request, params, context }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
 
   const formData = await request.formData();

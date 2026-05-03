@@ -137,71 +137,6 @@ function MobileNavLink({ href, children, onClick }: { href: string; children: Re
   );
 }
 
-function MobileEducationSection({
-  categories,
-  onClose,
-}: {
-  categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }>;
-  onClose: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div>
-      <div className="flex items-center justify-between px-6 py-5">
-        <NavLink
-          to="/vzdelavani"
-          onClick={onClose}
-          className={({ isActive }) =>
-            cn(
-              "text-xl font-medium transition-colors",
-              isActive
-                ? "text-brand-primary"
-                : "text-foreground hover:text-brand-primary"
-            )
-          }
-        >
-          Vzdělávání
-        </NavLink>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronDown
-            size={20}
-            className={cn("transition-transform duration-200", expanded && "rotate-180")}
-          />
-        </button>
-      </div>
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-300 ease-out",
-          expanded ? "max-h-[300px]" : "max-h-0"
-        )}
-      >
-        {categories.map((category) => (
-          <NavLink
-            key={category.key}
-            to={category.href}
-            onClick={onClose}
-            className={({ isActive }) =>
-              cn(
-                "block pl-10 pr-6 py-3 text-base transition-colors border-l-2 ml-6",
-                isActive
-                  ? "border-brand-primary text-brand-primary"
-                  : "border-brand-light text-muted-foreground hover:text-brand-primary"
-              )
-            }
-            style={({ isActive }) => isActive ? { borderLeftColor: 'var(--color-scioedu-accent)' } : undefined}
-          >
-            {category.title}
-          </NavLink>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function UserMenu({ user, profile }: HeaderProps) {
   const submit = useSubmit();
   const initials = profile?.full_name
@@ -260,14 +195,9 @@ function UserMenu({ user, profile }: HeaderProps) {
 function MobileMenu({
   user,
   profile,
-  educationSections,
   open,
   onClose,
 }: HeaderProps & { open: boolean; onClose: () => void }) {
-  const categories = educationSections?.length
-    ? educationOrder.filter((k) => educationSections.includes(k)).map((k) => ({ key: k, ...educationMeta[k] }))
-    : [];
-
   return (
     <>
       {/* Backdrop */}

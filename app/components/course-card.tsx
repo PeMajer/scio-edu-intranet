@@ -42,7 +42,6 @@ export function CourseCard({
   href,
   highlight,
   price,
-  isExternal,
   imageUrl,
   icon: Icon,
   height = "h-[220px] sm:h-[260px]",

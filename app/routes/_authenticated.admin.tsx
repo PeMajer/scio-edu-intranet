@@ -82,7 +82,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
-  const courseIds = [...new Set((enrollments || []).map((e: any) => e.course_id))];
+  type EnrollmentRow = {
+    id: string;
+    user_id: string;
+    course_id: string;
+    term_index: number;
+    enrolled_at: string;
+    status: string;
+    profile: {
+      full_name?: string | null;
+      birth_date?: string | null;
+      birth_place?: string | null;
+    } | null;
+  };
+  const rows: EnrollmentRow[] = (enrollments as EnrollmentRow[] | null) ?? [];
+
+  const courseIds = [...new Set(rows.map((e) => e.course_id))];
 
   let courseMap = new Map<string, Course>();
   if (courseIds.length > 0) {
@@ -94,7 +109,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     courseMap = new Map(courses.map((c) => [c._id, c]));
   }
 
-  const enriched: EnrichedEnrollment[] = (enrollments || []).map((e: any) => {
+  const enriched: EnrichedEnrollment[] = rows.map((e) => {
     const course = courseMap.get(e.course_id);
     const term = course?.dates?.[e.term_index];
     return {
