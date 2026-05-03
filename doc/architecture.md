@@ -45,6 +45,8 @@ app/
 │   │   └── section-header.tsx # Nadpis sekce s ikonou (sidebar karty)
 │   ├── ui/                   # shadcn/ui komponenty (button, card, badge, avatar, dialog, dropdown-menu, separator, breadcrumb)
 │   ├── course-card.tsx       # Univerzální overlay karta (kurzy i kategorie) s icon, href, height props
+│   ├── course-gallery.tsx    # Masonry galerie z proběhlých kurzů (CSS columns) + Dialog lightbox s klávesami Esc/←/→
+│   ├── course-testimonials.tsx # Reference účastníků (plain text) — karty v brand barvách
 │   ├── event-list.tsx        # Seznam událostí s datum chipem (dashboard, kalendář sidebar, selected day)
 │   ├── highlight-box.tsx     # Zvýrazněný box se žlutým pruhem vlevo (CTA, lektor, info)
 │   └── logo.tsx              # Logo komponenta (PNG s CSS filter variantami)
@@ -84,7 +86,7 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 ## Sanity schéma
 
 - `tag` — štítek (title + slug) — referencovaný z kurzů
-- `course` — kurz s rich-text poli (`highlight: highlightContent`, `description: blockContent`, `target_audience: blockContent`, `how_it_works: blockContent`), `status: 'open' | 'preparing'`, dates s alternativním `date_start_text`
+- `course` — kurz s rich-text poli (`highlight: highlightContent`, `description: blockContent`, `target_audience: blockContent`, `how_it_works: blockContent`), `status: 'open' | 'preparing'`, dates s alternativním `date_start_text`, `gallery` (image array, validace max 5 MB / 4000 px), `testimonials` (text array, plain text)
 - `lecturer` — profil lektora
 - `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce)
 - `blockContent` — sdílený rich-text typ (bloky, obrázky, odkazy)

@@ -148,6 +148,60 @@ export const course = {
       description: 'Odkazy na materiály z Google Drive nebo jiné zdroje',
     },
     {
+      name: 'gallery',
+      title: 'Fotografie z kurzu',
+      type: 'array',
+      description: 'Fotky z proběhlých běhů. Doporučená velikost: max 4000 px na delší straně, max 5 MB.',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            { name: 'alt', title: 'Alternativní text', type: 'string' },
+          ],
+          validation: (Rule: any) =>
+            Rule.custom(async (
+              value: { asset?: { _ref?: string } } | undefined,
+              context: {
+                getClient: (opts: { apiVersion: string }) => {
+                  getDocument: (id: string) => Promise<{
+                    size?: number;
+                    metadata?: { dimensions?: { width: number; height: number } };
+                  } | null>;
+                };
+              },
+            ) => {
+              if (!value?.asset?._ref) return true;
+              const client = context.getClient({ apiVersion: '2024-01-01' });
+              const asset = await client.getDocument(value.asset._ref);
+              if (!asset) return true;
+              const sizeBytes = asset.size;
+              const dim = asset.metadata?.dimensions;
+              if (sizeBytes && sizeBytes > 5 * 1024 * 1024) {
+                return `Fotka má ${(sizeBytes / 1024 / 1024).toFixed(1)} MB. Maximum je 5 MB — zmenšete ji prosím před nahráním.`;
+              }
+              if (dim && Math.max(dim.width, dim.height) > 4000) {
+                return `Fotka má ${dim.width}×${dim.height} px. Maximum je 4000 px na delší straně.`;
+              }
+              return true;
+            }),
+        },
+      ],
+    },
+    {
+      name: 'testimonials',
+      title: 'Napsali o kurzu',
+      type: 'array',
+      description: 'Krátké reference účastníků — pouze text. Autor se neuvádí.',
+      of: [
+        {
+          type: 'text',
+          rows: 4,
+          validation: (Rule: any) => Rule.min(10).max(800),
+        },
+      ],
+    },
+    {
       name: 'external_url',
       title: 'Externí odkaz',
       type: 'url',

@@ -147,6 +147,8 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
   - Termíny (může jich být víc), čas, cena, místo konání
   - Tlačítko „Přihlásit se na kurz" (s potvrzovacím dialogem + výběr termínu)
   - Lektor: foto, krátký medailonek
+  - Fotografie z kurzu — masonry galerie (CSS columns) s lightboxem
+  - Napsali o kurzu — reference účastníků (plain text)
   - Kontakt na organizátory
 ```
 

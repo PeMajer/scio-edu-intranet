@@ -60,6 +60,17 @@ export type Course = {
     label: string;
     url: string;
   }>;
+  gallery?: Array<{
+    _key: string;
+    alt?: string;
+    asset?: {
+      _id: string;
+      metadata?: { dimensions?: { width: number; height: number } };
+    };
+    hotspot?: { x: number; y: number };
+    crop?: { top: number; bottom: number; left: number; right: number };
+  }>;
+  testimonials?: string[];
   external_url?: string;
   is_published: boolean;
   is_external: boolean;

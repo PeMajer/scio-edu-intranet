@@ -29,6 +29,8 @@ import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2, Alert
 import { formatPrague } from "~/lib/format-date";
 import { PortableText } from "@portabletext/react";
 import type { Course } from "~/lib/sanity.server";
+import { CourseGallery, type GalleryPhoto } from "~/components/course-gallery";
+import { CourseTestimonials } from "~/components/course-testimonials";
 
 function formatDuration(minutes: number): string {
   const days = Math.floor(minutes / (60 * 24));
@@ -69,7 +71,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     `*[_type == "course" && slug.current == $slug][0]{
       ...,
       lecturers[]->,
-      "tags": tags[]->title
+      "tags": tags[]->title,
+      gallery[]{
+        _key,
+        alt,
+        hotspot,
+        crop,
+        asset->{ _id, metadata { dimensions } }
+      }
     }`,
     { slug: params.slug }
   );
@@ -83,6 +92,19 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const lecturerPhotos = (course.lecturers || []).map((l) =>
     l.photo ? imageBuilder.image(l.photo).width(200).url() : null
   );
+  const galleryPhotos: GalleryPhoto[] = (course.gallery || [])
+    .filter((item) => item.asset?._id)
+    .map((item) => {
+      const dim = item.asset?.metadata?.dimensions;
+      return {
+        key: item._key,
+        alt: item.alt ?? course.title,
+        width: dim?.width ?? 1200,
+        height: dim?.height ?? 900,
+        thumb: imageBuilder.image(item).width(600).format("webp").url(),
+        full: imageBuilder.image(item).width(1920).format("webp").url(),
+      };
+    });
 
   const { data: enrollments } = await supabase
     .from("enrollments")
@@ -115,6 +137,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     course,
     courseImage,
     lecturerPhotos,
+    galleryPhotos,
     userId: user.id,
     enrolledTerms: [...enrolledTerms],
     enrolledCountByTerm,
@@ -448,6 +471,7 @@ export default function KurzDetail() {
     course,
     courseImage,
     lecturerPhotos,
+    galleryPhotos,
     enrolledTerms,
     enrolledCountByTerm,
     profileBirthDate,
@@ -602,6 +626,12 @@ export default function KurzDetail() {
             )}
 
             <LecturersSection lecturers={course.lecturers} photos={lecturerPhotos} />
+
+            {galleryPhotos.length > 0 && <CourseGallery photos={galleryPhotos} />}
+
+            {course.testimonials && course.testimonials.length > 0 && (
+              <CourseTestimonials testimonials={course.testimonials} />
+            )}
           </div>
 
           {/* Right column — sticky sidebar */}
