@@ -24,7 +24,9 @@ try {
     const value = trimmed.slice(eqIndex + 1).trim().replace(/^["']|["']$/g, "");
     if (!process.env[key]) process.env[key] = value;
   }
-} catch {}
+} catch {
+  // .env file is optional — skip silently if not present
+}
 
 const client = createClient({
   projectId: process.env.SANITY_PROJECT_ID!,
