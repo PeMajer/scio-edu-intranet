@@ -1,4 +1,4 @@
-import { createServerClient, parse, serialize } from "@supabase/ssr";
+import { createServerClient, parse, serialize, type CookieOptions } from "@supabase/ssr";
 import type { AppLoadContext } from "@remix-run/cloudflare";
 
 export function createSupabaseServerClient(
@@ -13,13 +13,13 @@ export function createSupabaseServerClient(
     context.env.SUPABASE_ANON_KEY,
     {
       cookies: {
-        get(key) {
+        get(key: string) {
           return cookies[key];
         },
-        set(key, value, options) {
+        set(key: string, value: string, options: CookieOptions) {
           headers.append("Set-Cookie", serialize(key, value, options));
         },
-        remove(key, options) {
+        remove(key: string, options: CookieOptions) {
           headers.append("Set-Cookie", serialize(key, "", options));
         },
       },

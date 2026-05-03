@@ -34,7 +34,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let events: CalendarEvent[] = [];
   let calendarError: string | null = null;
 
-  const env = context.env as Record<string, string>;
+  const env = context.env;
   try {
     events = await fetchCalendarEvents(
       env.GOOGLE_CALENDAR_ID,
@@ -51,10 +51,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 function getEventStart(event: CalendarEvent): Date {
   return parseISO(event.start.dateTime ?? event.start.date ?? "");
-}
-
-function isAllDay(event: CalendarEvent): boolean {
-  return !event.start.dateTime && !!event.start.date;
 }
 
 const DAY_HEADERS = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];

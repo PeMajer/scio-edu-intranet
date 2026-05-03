@@ -31,7 +31,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .eq("id", user.id)
     .single();
 
-  const env = context.env as Record<string, string>;
+  const env = context.env;
   let upcomingEvents: CalendarEvent[] = [];
   try {
     const events = await fetchCalendarEvents(
