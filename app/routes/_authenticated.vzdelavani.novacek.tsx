@@ -13,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
@@ -82,11 +82,7 @@ export default function VzdelavaniNovacek() {
 
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
-          {introText && (
-            <div className="prose prose-gray max-w-none mb-8">
-              <PortableText value={introText} />
-            </div>
-          )}
+          {introText && <RichText value={introText} className="mb-8" />}
           <CourseGrid courses={courses} />
         </div>
 

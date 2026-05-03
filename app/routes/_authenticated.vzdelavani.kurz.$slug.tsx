@@ -28,6 +28,7 @@ import {
 import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatPrague } from "~/lib/format-date";
 import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 import { CourseGallery, type GalleryPhoto } from "~/components/course-gallery";
 import { CourseTestimonials } from "~/components/course-testimonials";
@@ -507,26 +508,20 @@ export default function KurzDetail() {
             <div className="lg:col-span-2">
 
               {course.description && course.description.length > 0 && (
-                <div className="text-base leading-7 text-foreground/80 space-y-4">
-                  <PortableText value={course.description} />
-                </div>
+                <RichText value={course.description} />
               )}
 
               {course.target_audience && course.target_audience.length > 0 && (
                 <div className="mt-6">
                   <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
-                  <div className="text-base text-foreground/80 space-y-4 [&_p]:leading-7">
-                    <PortableText value={course.target_audience} />
-                  </div>
+                  <RichText value={course.target_audience} />
                 </div>
               )}
 
               {course.how_it_works && course.how_it_works.length > 0 && (
                 <div className="mt-6">
                   <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Jak kurz probíhá</h3>
-                  <div className="text-base text-foreground/80 space-y-4 [&_p]:leading-7">
-                    <PortableText value={course.how_it_works} />
-                  </div>
+                  <RichText value={course.how_it_works} />
                 </div>
               )}
 
@@ -572,26 +567,20 @@ export default function KurzDetail() {
           <div className="lg:col-span-2 pb-0 lg:pb-[100px]">
 
             {course.description && course.description.length > 0 && (
-              <div className="text-base text-foreground/80 space-y-4 [&_p]:leading-7">
-                <PortableText value={course.description} />
-              </div>
+              <RichText value={course.description} />
             )}
 
             {course.target_audience && course.target_audience.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
-                <div className="text-base text-foreground/80 space-y-4 [&_p]:leading-7">
-                  <PortableText value={course.target_audience} />
-                </div>
+                <RichText value={course.target_audience} />
               </div>
             )}
 
             {course.how_it_works && course.how_it_works.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Jak kurz probíhá</h3>
-                <div className="text-base text-foreground/80 space-y-4 [&_p]:leading-7">
-                  <PortableText value={course.how_it_works} />
-                </div>
+                <RichText value={course.how_it_works} />
               </div>
             )}
 

@@ -15,7 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { Target, Wrench, Sparkles } from "lucide-react";
-import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
@@ -96,11 +96,7 @@ export default function VzdelavaniRust() {
 
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
-          {introText && (
-            <div className="prose prose-gray max-w-none mb-8">
-              <PortableText value={introText} />
-            </div>
-          )}
+          {introText && <RichText value={introText} className="mb-8" />}
           <div className="space-y-10">
             {Object.entries(subsectionConfig).map(([key, config]) => {
               const courses = subsections[key as keyof typeof subsections];

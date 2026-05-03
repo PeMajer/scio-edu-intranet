@@ -92,6 +92,7 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 - `blockContent` — sdílený rich-text typ (bloky, obrázky, odkazy)
 - `highlightContent` — restricted rich-text (jen tučné a kurzíva, žádné bloky/obrázky) — používá se pro krátké hero/card popisky
 - Studio konfigurace je v `scioedu/` (deploy: `cd scioedu && npx sanity deploy`)
+- Pro rendrování `blockContent` vždy použij `<RichText>` z `app/components/rich-text.tsx` — wrapper kolem `@portabletext/react` se sjednocenými styly nadpisů, listů (brand-marker odrážky) a odkazů. `highlightContent` je inline a renderuje se přímo přes `<PortableText>`.
 
 ## Design systém — barvy
 
