@@ -1,3 +1,5 @@
+import type { SanityRule } from '../types';
+
 export const highlightBox = {
   name: 'highlightBox',
   title: 'Highlight box',
@@ -8,14 +10,14 @@ export const highlightBox = {
       title: 'Interní název',
       type: 'string',
       description: 'Pro orientaci v administraci (např. „CTA — prohlédnout kurzy"). Nezobrazuje se na webu.',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
     },
     {
       name: 'heading',
       title: 'Nadpis',
       type: 'string',
       description: 'Hlavní text boxu (např. „Hledáte kurz pro sebe nebo svůj tým?").',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
     },
     {
       name: 'description',
@@ -35,19 +37,19 @@ export const highlightBox = {
         layout: 'radio',
       },
       initialValue: 'accent',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
     },
     {
       name: 'button',
       title: 'Tlačítko',
       type: 'object',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
       fields: [
         {
           name: 'label',
           title: 'Text tlačítka',
           type: 'string',
-          validation: (Rule: any) => Rule.required(),
+          validation: (Rule: SanityRule) => Rule.required(),
         },
         {
           name: 'linkType',
@@ -62,7 +64,7 @@ export const highlightBox = {
             layout: 'radio',
           },
           initialValue: 'course',
-          validation: (Rule: any) => Rule.required(),
+          validation: (Rule: SanityRule) => Rule.required(),
         },
         {
           name: 'course',
@@ -70,7 +72,7 @@ export const highlightBox = {
           type: 'reference',
           to: [{ type: 'course' }],
           hidden: ({ parent }: { parent?: { linkType?: string } }) => parent?.linkType !== 'course',
-          validation: (Rule: any) =>
+          validation: (Rule: SanityRule) =>
             Rule.custom((value: unknown, context: { parent?: { linkType?: string } }) => {
               if (context.parent?.linkType === 'course' && !value) return 'Vyberte kurz.';
               return true;
@@ -82,7 +84,7 @@ export const highlightBox = {
           type: 'reference',
           to: [{ type: 'sectionPage' }],
           hidden: ({ parent }: { parent?: { linkType?: string } }) => parent?.linkType !== 'section',
-          validation: (Rule: any) =>
+          validation: (Rule: SanityRule) =>
             Rule.custom((value: unknown, context: { parent?: { linkType?: string } }) => {
               if (context.parent?.linkType === 'section' && !value) return 'Vyberte stránku sekce.';
               return true;
@@ -94,7 +96,7 @@ export const highlightBox = {
           type: 'string',
           description: 'Začíná „/" pro interní cestu (např. /profil) nebo „https://" pro externí web.',
           hidden: ({ parent }: { parent?: { linkType?: string } }) => parent?.linkType !== 'url',
-          validation: (Rule: any) =>
+          validation: (Rule: SanityRule) =>
             Rule.custom((value: string | undefined, context: { parent?: { linkType?: string } }) => {
               if (context.parent?.linkType !== 'url') return true;
               if (!value) return 'Zadejte URL.';

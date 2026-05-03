@@ -1,10 +1,12 @@
+import type { SanityRule } from '../types';
+
 export const course = {
   name: 'course',
   title: 'Kurz',
   type: 'document',
   fields: [
-    { name: 'title', title: 'Název kurzu', type: 'string', validation: (Rule: any) => Rule.required() },
-    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' }, validation: (Rule: any) => Rule.required() },
+    { name: 'title', title: 'Název kurzu', type: 'string', validation: (Rule: SanityRule) => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' }, validation: (Rule: SanityRule) => Rule.required() },
     {
       name: 'highlight',
       title: 'Krátký highlight',
@@ -32,7 +34,7 @@ export const course = {
           { title: 'Vzdělávací cesty', value: 'cesty' },
         ],
       },
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule: SanityRule) => Rule.required(),
       description: 'Hlavní kategorie vzdělávání',
     },
     {
@@ -159,7 +161,7 @@ export const course = {
           fields: [
             { name: 'alt', title: 'Alternativní text', type: 'string' },
           ],
-          validation: (Rule: any) =>
+          validation: (Rule: SanityRule) =>
             Rule.custom(async (
               value: { asset?: { _ref?: string } } | undefined,
               context: {
@@ -197,7 +199,7 @@ export const course = {
         {
           type: 'text',
           rows: 4,
-          validation: (Rule: any) => Rule.min(10).max(800),
+          validation: (Rule: SanityRule) => Rule.min(10).max(800),
         },
       ],
     },
