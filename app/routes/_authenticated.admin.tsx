@@ -45,8 +45,11 @@ type EnrichedEnrollment = {
   status: string;
   userName: string;
   userEmail: string;
+  userBirthDate: string;
+  userBirthPlace: string;
   courseName: string;
   courseSection: string;
+  courseStatus: "open" | "preparing" | "";
   termDate: string;
   termLocation: string;
 };
@@ -79,19 +82,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
-  const courseIds = [...new Set((enrollments || []).map((e: any) => e.course_id))];
+  type EnrollmentRow = {
+    id: string;
+    user_id: string;
+    course_id: string;
+    term_index: number;
+    enrolled_at: string;
+    status: string;
+    profile: {
+      full_name?: string | null;
+      birth_date?: string | null;
+      birth_place?: string | null;
+    } | null;
+  };
+  const rows: EnrollmentRow[] = (enrollments as EnrollmentRow[] | null) ?? [];
+
+  const courseIds = [...new Set(rows.map((e) => e.course_id))];
 
   let courseMap = new Map<string, Course>();
   if (courseIds.length > 0) {
     const sanity = createSanityClient(context);
     const courses = await sanity.fetch<Course[]>(
-      `*[_type == "course" && _id in $ids]{ _id, title, slug, section, dates }`,
+      `*[_type == "course" && _id in $ids]{ _id, title, slug, section, status, dates }`,
       { ids: courseIds }
     );
     courseMap = new Map(courses.map((c) => [c._id, c]));
   }
 
-  const enriched: EnrichedEnrollment[] = (enrollments || []).map((e: any) => {
+  const enriched: EnrichedEnrollment[] = rows.map((e) => {
     const course = courseMap.get(e.course_id);
     const term = course?.dates?.[e.term_index];
     return {
@@ -103,8 +121,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       status: e.status,
       userName: e.profile?.full_name || "N/A",
       userEmail: emailMap.get(e.user_id) || "—",
+      userBirthDate: e.profile?.birth_date || "",
+      userBirthPlace: e.profile?.birth_place || "",
       courseName: course?.title || "Neznámý kurz",
       courseSection: course?.section ? (sectionLabels[course.section] || course.section) : "—",
+      courseStatus: (course?.status as "open" | "preparing" | undefined) ?? "",
       termDate: term?.date_start || "",
       termLocation: term?.location || "",
     };
@@ -152,6 +173,8 @@ const allColumns = [
   { key: "termLocation" as SortKey, label: "Místo", defaultVisible: true },
   { key: "enrolled_at" as SortKey, label: "Přihlášen dne", defaultVisible: true },
   { key: "status" as SortKey, label: "Status", defaultVisible: true },
+  { key: "userBirthDate" as SortKey, label: "Datum narození", defaultVisible: false },
+  { key: "userBirthPlace" as SortKey, label: "Místo narození", defaultVisible: false },
 ];
 
 function safeFormatDate(value: string | undefined | null): string {
@@ -329,7 +352,9 @@ export default function Admin() {
 
     function cellValue(e: EnrichedEnrollment, key: SortKey): string {
       if (key === "termDate" || key === "enrolled_at") return safeFormatDate(e[key]);
+      if (key === "userBirthDate") return safeFormatDate(e.userBirthDate);
       if (key === "status") {
+        if (e.courseStatus === "preparing" && e.status === "enrolled") return "PŘEDBĚŽNÁ";
         const cfg = statusConfig[e.status as keyof typeof statusConfig];
         return cfg?.label || e.status;
       }
@@ -397,7 +422,14 @@ export default function Admin() {
         return enrollment.termLocation || "—";
       case "enrolled_at":
         return safeFormatDate(enrollment.enrolled_at);
+      case "userBirthDate":
+        return enrollment.userBirthDate ? safeFormatDate(enrollment.userBirthDate) : "—";
+      case "userBirthPlace":
+        return enrollment.userBirthPlace || "—";
       case "status": {
+        if (enrollment.courseStatus === "preparing" && enrollment.status === "enrolled") {
+          return <Badge variant="secondary" size="sm">PŘEDBĚŽNÁ</Badge>;
+        }
         const cfg = statusConfig[enrollment.status as keyof typeof statusConfig];
         return cfg ? <Badge variant={cfg.variant} size="sm">{cfg.label}</Badge> : enrollment.status;
       }

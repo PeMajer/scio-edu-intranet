@@ -1,9 +1,10 @@
 import { Link } from "@remix-run/react";
 import type { LucideIcon } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
 
 interface CourseCardProps {
   title: string;
-  /** Slug kurzu — generuje href `/vzdelavani/kurz/{slug}`. Ignorováno pokud je zadán `href`. */
+  /** Slug kurzu — generuje href `/programy/kurz/{slug}`. Ignorováno pokud je zadán `href`. */
   slug?: string;
   /** Přímý odkaz — má přednost před `slug`. */
   href?: string;
@@ -15,6 +16,8 @@ interface CourseCardProps {
   icon?: LucideIcon;
   /** Tailwind výška, default "h-[220px] sm:h-[260px]". */
   height?: string;
+  /** Stav kurzu — pokud "preparing", zobrazí se badge „Připravujeme". */
+  status?: "open" | "preparing";
 }
 
 const placeholderImages = [
@@ -39,16 +42,17 @@ export function CourseCard({
   href,
   highlight,
   price,
-  isExternal,
   imageUrl,
   icon: Icon,
   height = "h-[220px] sm:h-[260px]",
+  status,
 }: CourseCardProps) {
   const bgImage = imageUrl || getPlaceholderImage(title);
-  const to = href || `/vzdelavani/kurz/${slug}`;
+  const to = href || `/programy/kurz/${slug}`;
 
   const subtitle = highlight
     || (price === 0 ? "Zdarma" : price ? `${price.toLocaleString("cs-CZ")} Kč` : "");
+  const isPreparing = status === "preparing";
 
   return (
     <Link
@@ -64,6 +68,11 @@ export function CourseCard({
         className="absolute inset-x-0 bottom-0 h-3/5"
         style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-scioedu-primary) 90%, black) 0%, color-mix(in srgb, var(--color-scioedu-primary) 50%, transparent) 60%, transparent 100%)' }}
       />
+      {isPreparing && (
+        <div className="absolute top-3 right-3 z-10">
+          <Badge variant="brand-accent" size="md">Připravujeme</Badge>
+        </div>
+      )}
       <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
         <div className="flex items-center gap-2 text-white font-semibold text-lg mb-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
           {Icon && <Icon className="w-5 h-5" />}

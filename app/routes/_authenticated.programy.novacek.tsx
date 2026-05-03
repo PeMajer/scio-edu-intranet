@@ -3,7 +3,6 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
 import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
-import { SectionHeader } from "~/components/layout/section-header";
 import { CourseGrid } from "~/components/course-grid";
 import { ResourcesCard } from "~/components/resources-card";
 import {
@@ -14,12 +13,18 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { Target, Wrench, Sparkles } from "lucide-react";
-import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
+import { HighlightBoxList } from "~/components/highlight-box-list";
+import { HIGHLIGHT_BOXES_PROJECTION, type HighlightBoxDoc } from "~/lib/highlight-box";
 import type { Course } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
-type SectionPage = { intro_text?: any[]; resources?: Resource[]; cover_image?: any };
+type SectionPage = {
+  intro_text?: any[];
+  resources?: Resource[];
+  cover_image?: any;
+  highlight_boxes?: HighlightBoxDoc[];
+};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
@@ -28,10 +33,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const imageBuilder = getImageUrlBuilder(context);
   const [courses, sectionPage] = await Promise.all([
     sanity.fetch<Course[]>(
-      `*[_type == "course" && section == "rust" && is_published == true] | order(_createdAt desc)`
+      `*[_type == "course" && section == "novacek" && is_published == true] | order(_createdAt desc)`
     ),
     sanity.fetch<SectionPage | null>(
-      `*[_type == "sectionPage" && section_key == "rust" && is_visible == true][0]{ intro_text, resources, cover_image }`
+      `*[_type == "sectionPage" && section_key == "novacek" && is_visible == true][0]{
+        intro_text,
+        resources,
+        cover_image,
+        ${HIGHLIGHT_BOXES_PROJECTION}
+      }`
     ),
   ]);
 
@@ -42,51 +52,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       : null,
   }));
 
-  const subsections = {
-    sciocile: coursesWithImages.filter((c) => c.subsection === "sciocile"),
-    remeslo: coursesWithImages.filter((c) => c.subsection === "remeslo"),
-    "osobni-rozvoj": coursesWithImages.filter((c) => c.subsection === "osobni-rozvoj"),
-  };
-
   const coverImageUrl = sectionPage?.cover_image
     ? imageBuilder.image(sectionPage.cover_image).width(1200).height(400).format("webp").url()
     : null;
 
   return json({
-    subsections,
+    courses: coursesWithImages,
     introText: sectionPage?.intro_text ?? null,
     resources: sectionPage?.resources ?? [],
+    highlightBoxes: sectionPage?.highlight_boxes ?? [],
     coverImageUrl,
   }, { headers });
 }
 
-const subsectionConfig = {
-  sciocile: { title: "Kurzy na ScioCíle", icon: Target },
-  remeslo: { title: "Řemeslo průvodce", icon: Wrench },
-  "osobni-rozvoj": { title: "Osobní rozvoj", icon: Sparkles },
-};
-
-export default function VzdelavaniRust() {
-  const { subsections, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
+export default function VzdelavaniNovacek() {
+  const { courses, introText, resources, highlightBoxes, coverImageUrl } = useLoaderData<typeof loader>();
 
   return (
     <>
       <PageHeader
         fullWidth
-        title="Vzdělávání a růst pro každého"
-        description="Kurzy zaměřené na osobní rozvoj a odborné dovednosti"
-        imageUrl={coverImageUrl || "/images/hero-learning.jpg"}
+        title="Jsem ve ScioPolis nováček"
+        description="Úvodní kurzy a informace pro nové zaměstnance"
+        imageUrl={coverImageUrl || "/images/hero-classroom.jpg"}
         breadcrumb={
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-                  <Link to="/vzdelavani">Vzdělávání</Link>
+                  <Link to="/programy">Programy</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-white/40" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-white/80 font-medium">Osobní růst</BreadcrumbPage>
+                <BreadcrumbPage className="text-white/80 font-medium">Nováček</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -94,23 +93,11 @@ export default function VzdelavaniRust() {
         className="-mt-6 mb-8"
       />
 
-      {introText && (
-        <div className="prose prose-gray max-w-none mb-8">
-          <PortableText value={introText} />
-        </div>
-      )}
-
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
-        <div className={`space-y-10 ${resources.length > 0 ? "lg:col-span-2" : ""}`}>
-          {Object.entries(subsectionConfig).map(([key, config]) => {
-            const courses = subsections[key as keyof typeof subsections];
-            return (
-              <section key={key}>
-                <SectionHeader icon={config.icon} title={config.title} className="mb-5" />
-                <CourseGrid courses={courses} />
-              </section>
-            );
-          })}
+        <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
+          {introText && <RichText value={introText} className="mb-8" />}
+          <CourseGrid courses={courses} />
+          <HighlightBoxList boxes={highlightBoxes} />
         </div>
 
         {resources.length > 0 && (

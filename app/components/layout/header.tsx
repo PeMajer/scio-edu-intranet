@@ -1,5 +1,5 @@
 import { Form, Link, NavLink, useSubmit } from "@remix-run/react";
-import { Menu, LogOut, Shield, X, ChevronDown, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
+import { Menu, LogOut, Shield, User, X, ChevronDown, GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "~/components/logo";
 import { Button } from "~/components/ui/button";
@@ -14,10 +14,10 @@ import {
 import { cn } from "~/lib/cn";
 
 const educationMeta: Record<string, { title: string; href: string; icon: LucideIcon }> = {
-  novacek: { title: "Jsem ve ScioPolis nováček", href: "/vzdelavani/novacek", icon: GraduationCap },
-  rust: { title: "Vzdělávání a růst pro každého", href: "/vzdelavani/rust", icon: Sparkles },
-  tymy: { title: "Rozvoj pro týmy a kvadriády", href: "/vzdelavani/tymy", icon: Users },
-  cesty: { title: "Vzdělávací cesty", href: "/vzdelavani/cesty", icon: Map },
+  novacek: { title: "Jsem ve ScioPolis nováček", href: "/programy/novacek", icon: GraduationCap },
+  rust: { title: "Vzdělávání a růst pro každého", href: "/programy/rust", icon: Sparkles },
+  tymy: { title: "Rozvoj pro týmy a kvadriády", href: "/programy/tymy", icon: Users },
+  cesty: { title: "Vzdělávací cesty", href: "/programy/cesty", icon: Map },
 };
 
 const educationOrder = ["novacek", "rust", "tymy", "cesty"];
@@ -36,8 +36,8 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { label: "Dashboard", href: "/portal" },
-  { label: "Vzdělávání", href: "/vzdelavani" },
+  { label: "Rozcestník", href: "/portal" },
+  { label: "Programy", href: "/programy" },
   { label: "Moje kurzy", href: "/moje-kurzy" },
   { label: "Kalendář", href: "/kalendar" },
   { label: "Koncepce", href: "/koncepce" },
@@ -62,11 +62,11 @@ function DesktopNavLink({ href, children }: { href: string; children: React.Reac
   );
 }
 
-function DesktopEducationDropdown({ categories }: { categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }> }) {
+function DesktopEducationDropdown({ categories, label }: { categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }>; label: string }) {
   return (
     <div className="relative group">
       <NavLink
-        to="/vzdelavani"
+        to="/programy"
         className={({ isActive }) =>
           cn(
             "text-sm px-3 py-2 font-medium transition-colors border-b-2 pb-1 flex items-center",
@@ -77,7 +77,7 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
         }
         style={({ isActive }) => ({ borderBottomColor: isActive ? 'var(--color-scioedu-accent)' : 'transparent' })}
       >
-        Vzdělávání
+        {label}
         <ChevronDown size={14} className="ml-1 transition-transform duration-200 group-hover:rotate-180" />
       </NavLink>
 
@@ -105,7 +105,7 @@ function DesktopEducationDropdown({ categories }: { categories: Array<{ key: str
         })}
         <div className="border-t border-border mt-1 pt-1">
           <Link
-            to="/vzdelavani"
+            to="/programy"
             className="px-3 py-2 text-xs text-brand-primary font-medium hover:text-brand-primary/80 flex items-center gap-1"
           >
             Všechny kategorie →
@@ -137,71 +137,6 @@ function MobileNavLink({ href, children, onClick }: { href: string; children: Re
   );
 }
 
-function MobileEducationSection({
-  categories,
-  onClose,
-}: {
-  categories: Array<{ key: string; title: string; href: string; icon: LucideIcon }>;
-  onClose: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div>
-      <div className="flex items-center justify-between px-6 py-5">
-        <NavLink
-          to="/vzdelavani"
-          onClick={onClose}
-          className={({ isActive }) =>
-            cn(
-              "text-xl font-medium transition-colors",
-              isActive
-                ? "text-brand-primary"
-                : "text-foreground hover:text-brand-primary"
-            )
-          }
-        >
-          Vzdělávání
-        </NavLink>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronDown
-            size={20}
-            className={cn("transition-transform duration-200", expanded && "rotate-180")}
-          />
-        </button>
-      </div>
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-300 ease-out",
-          expanded ? "max-h-[300px]" : "max-h-0"
-        )}
-      >
-        {categories.map((category) => (
-          <NavLink
-            key={category.key}
-            to={category.href}
-            onClick={onClose}
-            className={({ isActive }) =>
-              cn(
-                "block pl-10 pr-6 py-3 text-base transition-colors border-l-2 ml-6",
-                isActive
-                  ? "border-brand-primary text-brand-primary"
-                  : "border-brand-light text-muted-foreground hover:text-brand-primary"
-              )
-            }
-            style={({ isActive }) => isActive ? { borderLeftColor: 'var(--color-scioedu-accent)' } : undefined}
-          >
-            {category.title}
-          </NavLink>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function UserMenu({ user, profile }: HeaderProps) {
   const submit = useSubmit();
   const initials = profile?.full_name
@@ -230,17 +165,21 @@ function UserMenu({ user, profile }: HeaderProps) {
           <p className="font-semibold text-sm text-foreground">{profile?.full_name ?? "Uživatel"}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
         </div>
+        <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
+          <Link to="/profil" className="flex items-center gap-2.5 text-sm">
+            <User className="text-brand-primary" size={16} />
+            Můj profil
+          </Link>
+        </DropdownMenuItem>
         {profile?.role === "admin" && (
-          <>
-            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
-              <Link to="/admin" className="flex items-center gap-2.5 text-sm">
-                <Shield className="text-brand-primary" size={16} />
-                Administrace
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1" />
-          </>
+          <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer hover:bg-brand-light/40 hover:text-brand-primary focus:bg-brand-light/40 focus:text-brand-primary">
+            <Link to="/admin" className="flex items-center gap-2.5 text-sm">
+              <Shield className="text-brand-primary" size={16} />
+              Administrace
+            </Link>
+          </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator className="my-1" />
         <DropdownMenuItem
           onSelect={() => submit(null, { method: "post", action: "/auth/logout" })}
           className="group/logout rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
@@ -256,14 +195,9 @@ function UserMenu({ user, profile }: HeaderProps) {
 function MobileMenu({
   user,
   profile,
-  educationSections,
   open,
   onClose,
 }: HeaderProps & { open: boolean; onClose: () => void }) {
-  const categories = educationSections?.length
-    ? educationOrder.filter((k) => educationSections.includes(k)).map((k) => ({ key: k, ...educationMeta[k] }))
-    : [];
-
   return (
     <>
       {/* Backdrop */}
@@ -296,8 +230,16 @@ function MobileMenu({
               {item.label}
             </MobileNavLink>
           ))}
-          {profile?.role === "admin" && (
-            <div className="border-t border-border mt-4 pt-4 mx-6">
+          <div className="border-t border-border mt-4 pt-4 mx-6">
+            <NavLink
+              to="/profil"
+              onClick={onClose}
+              className="flex items-center gap-2 py-3 text-sm text-muted-foreground hover:text-brand-primary transition-colors"
+            >
+              <User size={16} />
+              Můj profil
+            </NavLink>
+            {profile?.role === "admin" && (
               <NavLink
                 to="/admin"
                 onClick={onClose}
@@ -306,8 +248,8 @@ function MobileMenu({
                 <Shield size={16} />
                 Administrace
               </NavLink>
-            </div>
-          )}
+            )}
+          </div>
         </nav>
 
         {/* Profile footer */}
@@ -362,8 +304,8 @@ export function Header({ user, profile, educationSections }: HeaderProps) {
             {/* Desktop nav */}
             <nav className="hidden nav:flex items-center gap-1">
               {navItems.map((item) =>
-                item.label === "Vzdělávání" && categories.length > 0 ? (
-                  <DesktopEducationDropdown key={item.href} categories={categories} />
+                item.href === "/programy" && categories.length > 0 ? (
+                  <DesktopEducationDropdown key={item.href} categories={categories} label={item.label} />
                 ) : (
                   <DesktopNavLink key={item.href} href={item.href}>
                     {item.label}

@@ -14,11 +14,18 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { Users } from "lucide-react";
-import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
+import { HighlightBoxList } from "~/components/highlight-box-list";
+import { HIGHLIGHT_BOXES_PROJECTION, type HighlightBoxDoc } from "~/lib/highlight-box";
 import type { Course } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
-type SectionPage = { intro_text?: any[]; resources?: Resource[]; cover_image?: any };
+type SectionPage = {
+  intro_text?: any[];
+  resources?: Resource[];
+  cover_image?: any;
+  highlight_boxes?: HighlightBoxDoc[];
+};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { headers } = await requireAuth(request, context);
@@ -30,7 +37,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       `*[_type == "course" && section == "tymy" && is_published == true] | order(_createdAt desc)`
     ),
     sanity.fetch<SectionPage | null>(
-      `*[_type == "sectionPage" && section_key == "tymy" && is_visible == true][0]{ intro_text, resources, cover_image }`
+      `*[_type == "sectionPage" && section_key == "tymy" && is_visible == true][0]{
+        intro_text,
+        resources,
+        cover_image,
+        ${HIGHLIGHT_BOXES_PROJECTION}
+      }`
     ),
   ]);
 
@@ -49,12 +61,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     courses: coursesWithImages,
     introText: sectionPage?.intro_text ?? null,
     resources: sectionPage?.resources ?? [],
+    highlightBoxes: sectionPage?.highlight_boxes ?? [],
     coverImageUrl,
   }, { headers });
 }
 
 export default function VzdelavaniTymy() {
-  const { courses, introText, resources, coverImageUrl } = useLoaderData<typeof loader>();
+  const { courses, introText, resources, highlightBoxes, coverImageUrl } = useLoaderData<typeof loader>();
 
   return (
     <>
@@ -68,7 +81,7 @@ export default function VzdelavaniTymy() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-                  <Link to="/vzdelavani">Vzdělávání</Link>
+                  <Link to="/programy">Programy</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-white/40" />
@@ -81,14 +94,9 @@ export default function VzdelavaniTymy() {
         className="-mt-6 mb-8"
       />
 
-      {introText && (
-        <div className="prose prose-gray max-w-none mb-8">
-          <PortableText value={introText} />
-        </div>
-      )}
-
       <div className={`grid gap-6 ${resources.length > 0 ? "lg:grid-cols-3" : ""}`}>
         <div className={resources.length > 0 ? "lg:col-span-2" : ""}>
+          {introText && <RichText value={introText} className="mb-8" />}
           {courses.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
@@ -102,6 +110,7 @@ export default function VzdelavaniTymy() {
           ) : (
             <CourseGrid courses={courses} />
           )}
+          <HighlightBoxList boxes={highlightBoxes} />
         </div>
 
         {resources.length > 0 && (

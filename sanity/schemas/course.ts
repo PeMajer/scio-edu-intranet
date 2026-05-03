@@ -8,12 +8,12 @@ export const course = {
     {
       name: 'highlight',
       title: 'Krátký highlight',
-      type: 'text',
-      rows: 2,
-      description: 'O čem kurz je — krátký popis pro kartu a přehled (1–2 věty)',
+      type: 'highlightContent',
+      description: 'O čem kurz je — krátký popis pro kartu a přehled (1–2 věty). Podporuje tučné a kurzívu.',
     },
     { name: 'description', title: 'Podrobný popis', type: 'blockContent' },
-    { name: 'target_audience', title: 'Pro koho je určen', type: 'text', rows: 3 },
+    { name: 'target_audience', title: 'Pro koho je určen', type: 'blockContent' },
+    { name: 'how_it_works', title: 'Jak kurz probíhá', type: 'blockContent' },
     {
       name: 'benefits',
       title: 'Co účastník získá / co si odnese',
@@ -69,6 +69,13 @@ export const course = {
               title: 'Začátek',
               type: 'datetime',
               options: { dateFormat: 'DD.MM.YYYY', timeFormat: 'HH:mm', timeStep: 15 },
+              description: 'Pokud má kurz pevné datum začátku. Pokud chcete místo data zobrazit volný popis, vyplňte „Volný popis začátku" níže.',
+            },
+            {
+              name: 'date_start_text',
+              title: 'Volný popis začátku',
+              type: 'string',
+              description: 'Pokud vyplněno, zobrazí se místo přesného data (např. „začátek jara").',
             },
             {
               name: 'date_end',
@@ -86,16 +93,16 @@ export const course = {
             },
           ],
           preview: {
-            select: { start: 'date_start', end: 'date_end', location: 'location', capacity: 'capacity', note: 'note' },
-            prepare({ start, end, location, capacity, note }: { start?: string; end?: string; location?: string; capacity?: number; note?: string }) {
+            select: { start: 'date_start', startText: 'date_start_text', end: 'date_end', location: 'location', capacity: 'capacity', note: 'note' },
+            prepare({ start, startText, end, location, capacity, note }: { start?: string; startText?: string; end?: string; location?: string; capacity?: number; note?: string }) {
               const fmt = (v?: string) => {
                 if (!v) return null;
                 const d = new Date(v);
                 return isNaN(d.getTime()) ? null : d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
               };
-              const startFmt = fmt(start);
+              const startFmt = startText || fmt(start);
               const endFmt = fmt(end);
-              const title = startFmt && endFmt
+              const title = startFmt && endFmt && !startText
                 ? `${startFmt} – ${endFmt}`
                 : startFmt || 'Datum neuvedeno';
               const parts = [location, capacity ? `${capacity} míst` : null, note].filter(Boolean);
@@ -141,10 +148,84 @@ export const course = {
       description: 'Odkazy na materiály z Google Drive nebo jiné zdroje',
     },
     {
+      name: 'gallery',
+      title: 'Fotografie z kurzu',
+      type: 'array',
+      description: 'Fotky z proběhlých běhů. Doporučená velikost: max 4000 px na delší straně, max 5 MB.',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            { name: 'alt', title: 'Alternativní text', type: 'string' },
+          ],
+          validation: (Rule: any) =>
+            Rule.custom(async (
+              value: { asset?: { _ref?: string } } | undefined,
+              context: {
+                getClient: (opts: { apiVersion: string }) => {
+                  getDocument: (id: string) => Promise<{
+                    size?: number;
+                    metadata?: { dimensions?: { width: number; height: number } };
+                  } | null>;
+                };
+              },
+            ) => {
+              if (!value?.asset?._ref) return true;
+              const client = context.getClient({ apiVersion: '2024-01-01' });
+              const asset = await client.getDocument(value.asset._ref);
+              if (!asset) return true;
+              const sizeBytes = asset.size;
+              const dim = asset.metadata?.dimensions;
+              if (sizeBytes && sizeBytes > 5 * 1024 * 1024) {
+                return `Fotka má ${(sizeBytes / 1024 / 1024).toFixed(1)} MB. Maximum je 5 MB — zmenšete ji prosím před nahráním.`;
+              }
+              if (dim && Math.max(dim.width, dim.height) > 4000) {
+                return `Fotka má ${dim.width}×${dim.height} px. Maximum je 4000 px na delší straně.`;
+              }
+              return true;
+            }),
+        },
+      ],
+    },
+    {
+      name: 'testimonials',
+      title: 'Napsali o kurzu',
+      type: 'array',
+      description: 'Krátké reference účastníků — pouze text. Autor se neuvádí.',
+      of: [
+        {
+          type: 'text',
+          rows: 4,
+          validation: (Rule: any) => Rule.min(10).max(800),
+        },
+      ],
+    },
+    {
       name: 'external_url',
       title: 'Externí odkaz',
       type: 'url',
       description: 'Pokud kurz vede na externí web (scioedu.cz apod.)',
+    },
+    {
+      name: 'status',
+      title: 'Stav kurzu',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Otevřený', value: 'open' },
+          { title: 'Připravujeme', value: 'preparing' },
+        ],
+      },
+      initialValue: 'open',
+      description: 'U kurzu „Připravujeme" se zobrazí badge na kartě a přihláška bude označena jako PŘEDBĚŽNÁ.',
+    },
+    {
+      name: 'highlight_boxes',
+      title: 'Highlight boxy (pod stránkou)',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'highlightBox' }] }],
+      description: 'Boxy s CTA, které se zobrazí pod sebou na konci stránky kurzu.',
     },
     { name: 'is_published', title: 'Publikováno', type: 'boolean', initialValue: true },
     {

@@ -17,7 +17,7 @@ interface BreadcrumbItem {
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   actions?: React.ReactNode;
   className?: string;
@@ -99,7 +99,7 @@ export function PageHeader({
                 {title}
               </h1>
               {description && (
-                <p className="text-white/85 text-[20px] font-[family-name:var(--font-roboto)] max-w-xl mt-1">{description}</p>
+                <div className="text-white/85 text-[20px] font-[family-name:var(--font-roboto)] max-w-xl mt-1 [&_p]:m-0 [&_p+p]:mt-2">{description}</div>
               )}
               {badges && badges.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -125,7 +125,7 @@ export function PageHeader({
         <div>
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
           {description && (
-            <p className="mt-1 text-lg text-muted-foreground">{description}</p>
+            <div className="mt-1 text-lg text-muted-foreground [&_p]:m-0 [&_p+p]:mt-2">{description}</div>
           )}
         </div>
         {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}

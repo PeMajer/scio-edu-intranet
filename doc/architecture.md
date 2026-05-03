@@ -45,6 +45,8 @@ app/
 │   │   └── section-header.tsx # Nadpis sekce s ikonou (sidebar karty)
 │   ├── ui/                   # shadcn/ui komponenty (button, card, badge, avatar, dialog, dropdown-menu, separator, breadcrumb)
 │   ├── course-card.tsx       # Univerzální overlay karta (kurzy i kategorie) s icon, href, height props
+│   ├── course-gallery.tsx    # Masonry galerie z proběhlých kurzů (CSS columns) + Dialog lightbox s klávesami Esc/←/→
+│   ├── course-testimonials.tsx # Reference účastníků (plain text) — karty v brand barvách
 │   ├── event-list.tsx        # Seznam událostí s datum chipem (dashboard, kalendář sidebar, selected day)
 │   ├── highlight-box.tsx     # Zvýrazněný box se žlutým pruhem vlevo (CTA, lektor, info)
 │   └── logo.tsx              # Logo komponenta (PNG s CSS filter variantami)
@@ -59,7 +61,7 @@ public/
 └── images/                   # Statické obrázky (logo, hero fotky)
 
 sanity/
-└── schemas/                  # Sanity schémata: tag, course, lecturer, sectionPage, blockContent
+└── schemas/                  # Sanity schémata: tag, highlightBox, course, lecturer, sectionPage, blockContent
 
 supabase/
 └── migrations/               # SQL migrace
@@ -76,16 +78,22 @@ Child loadery si ponechávají vlastní `requireAuth` (Remix pouští loadery pa
 
 ## Databázové schéma (Supabase)
 
-- `profiles` — uživatelské profily (id, email, role: `user` | `admin`)
+- `profiles` — uživatelské profily (id, email, role: `user` | `admin`, `birth_date`, `birth_place`)
+  - `birth_date` / `birth_place` — používá se pro tisk certifikátů; uživatel je doplní v dialogu při první přihlášce nebo přes `/profil`
 - `enrollments` — zápisy na kurzy (user_id, course_id, term_index, enrolled_at, status: `enrolled` | `completed` | `cancelled`)
 - RLS: uživatelé vidí jen vlastní záznamy; admins mají plný přístup (CRUD)
 
 ## Sanity schéma
 
 - `tag` — štítek (title + slug) — referencovaný z kurzů
-- `course` — kurz s datem, cenou, lektory, slotem pro termíny; tagy jako reference na `tag`
+- `highlightBox` — reusable CTA box (heading, description, variant `accent`/`primary`, button s `linkType: course | section | url`) — referencovaný z `course.highlight_boxes` a `sectionPage.highlight_boxes`. Renderování: `<HighlightBoxList>` na konci stránky, helper `resolveButtonHref` v `app/lib/highlight-box.ts` (interní URL přes `<Link>`, externí přes `<a target="_blank">`)
+- `course` — kurz s rich-text poli (`highlight: highlightContent`, `description: blockContent`, `target_audience: blockContent`, `how_it_works: blockContent`), `status: 'open' | 'preparing'`, dates s alternativním `date_start_text`, `gallery` (image array, validace max 5 MB / 4000 px), `testimonials` (text array, plain text), `highlight_boxes` (array reference → highlightBox)
 - `lecturer` — profil lektora
-- `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce)
+- `sectionPage` — konfigurace sekce (novacek, rust, tymy, koncepce), `highlight_boxes` (array reference → highlightBox)
+- `blockContent` — sdílený rich-text typ (bloky, obrázky, odkazy)
+- `highlightContent` — restricted rich-text (jen tučné a kurzíva, žádné bloky/obrázky) — používá se pro krátké hero/card popisky
+- Studio konfigurace je v `scioedu/` (deploy: `cd scioedu && npx sanity deploy`)
+- Pro rendrování `blockContent` vždy použij `<RichText>` z `app/components/rich-text.tsx` — wrapper kolem `@portabletext/react` se sjednocenými styly nadpisů, listů (brand-marker odrážky) a odkazů. `highlightContent` je inline a renderuje se přímo přes `<PortableText>`.
 
 ## Design systém — barvy
 

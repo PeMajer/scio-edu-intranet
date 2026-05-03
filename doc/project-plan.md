@@ -86,39 +86,39 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
 ### 4.3 Sekce Vzdělávání
 
 ```
-/vzdelavani                             → Rozcestí vzdělávání (4 podkategorie)
+/programy                             → Rozcestí vzdělávání (4 podkategorie)
 
-/vzdelavani/novacek                     → 1. Jsem ve ScioPolis nováček
-  ├── /vzdelavani/novacek/kurzy         →    Kurzy pro nováčky
+/programy/novacek                     → 1. Jsem ve ScioPolis nováček
+  ├── /programy/novacek/kurzy         →    Kurzy pro nováčky
   │     - Celoroční vzdělávání pro nové průvodce
   │     - Akademie pro nováčky ve ScioPolis
   │     - [prolink] Pedagogické maximum (ext. scioedu.cz)
   │     - [prolink] Asistentské maximum (ext. scioedu.cz)
   │     - Tlačítko: „nic tu pro tebe není → Vzdělávání a růst pro každého"
-  └── /vzdelavani/novacek/informace     →    Hledám informace
+  └── /programy/novacek/informace     →    Hledám informace
         - Krátký úvod
         - [prolink] na sekci Koncepce (podcasty, balíčky, dokumenty)
 
-/vzdelavani/rust                        → 2. Vzdělávání a růst pro každého
-  ├── /vzdelavani/rust/sciocile         →    Kurzy na ScioCíle
+/programy/rust                        → 2. Vzdělávání a růst pro každého
+  ├── /programy/rust/sciocile         →    Kurzy na ScioCíle
   │     - 8 expertních kurzů (s detailními podstránkami)
   │     - Kurz didaktiky odolnosti (+ později další)
-  ├── /vzdelavani/rust/remeslo          →    Řemeslo průvodce
+  ├── /programy/rust/remeslo          →    Řemeslo průvodce
   │     - Sledování pokroku žáků
   │     - Učím s AI
   │     - [prolink] Didaktiky → Kurzy na ScioCíle
   │     - [prolink] Akademie moderního učitele (ext.)
-  └── /vzdelavani/rust/osobni-rozvoj    →    Osobní rozvoj
+  └── /programy/rust/osobni-rozvoj    →    Osobní rozvoj
         - Placeholder (zatím žádný kurz)
         - [prolink] Asistentské maximum, Pedagogické maximum (ext.)
   + Všude prolink „Hledám informace" → sekce Koncepce
 
-/vzdelavani/tymy                        → 3. Rozvoj pro týmy a kvadriády
+/programy/tymy                        → 3. Rozvoj pro týmy a kvadriády
   - Kompetenční vzdělávání do průvodcoven
   - Děti se speciálně vzdělávacími potřebami
   - Kurzy na míru pro týmy a kvadriády
 
-/vzdelavani/cesty                       → 4. Vzdělávací cesty [SKRYTÁ]
+/programy/cesty                       → 4. Vzdělávací cesty [SKRYTÁ]
   - Připravit prostor v systému
   - Strukturace: ScioCíl → Výchozí dokumenty → Didaktika → Kurzy
   - Nezobrazovat v navigaci (visibility flag)
@@ -139,7 +139,7 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
 ### 4.5 Detail kurzu
 
 ```
-/vzdelavani/kurz/[slug]                 → Detail jednoho kurzu
+/programy/kurz/[slug]                 → Detail jednoho kurzu
   - Název kurzu
   - O čem kurz je (krátký highlight)
   - Pro koho je určen
@@ -147,6 +147,8 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
   - Termíny (může jich být víc), čas, cena, místo konání
   - Tlačítko „Přihlásit se na kurz" (s potvrzovacím dialogem + výběr termínu)
   - Lektor: foto, krátký medailonek
+  - Fotografie z kurzu — masonry galerie (CSS columns) s lightboxem
+  - Napsali o kurzu — reference účastníků (plain text)
   - Kontakt na organizátory
 ```
 
@@ -154,14 +156,14 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
 - `is_external = false` → plný detail s přihlášením přes intranet
 - `is_external = true` → zkrácený detail (highlight, pro koho, lektor) + výrazné CTA tlačítko „Přejít na přihlášení →" odkazující na `external_url`. Žádné interní přihlášení, žádný zápis do enrollments.
 
-**Breadcrumbs:** Jedna sdílená route `/vzdelavani/kurz/$slug`. Breadcrumbs se sestavují z dat kurzu v Sanity (pole `section` a `subsection`), nikoliv z URL. Loader kurzu vrátí i data o nadřazené sekci, komponenta `Breadcrumbs.tsx` je vykreslí (např. Vzdělávání > Růst > ScioCíle > Název kurzu). Uživatel se kliknutím na breadcrumb vrátí do správné kategorie.
+**Breadcrumbs:** Jedna sdílená route `/programy/kurz/$slug`. Breadcrumbs se sestavují z dat kurzu v Sanity (pole `section` a `subsection`), nikoliv z URL. Loader kurzu vrátí i data o nadřazené sekci, komponenta `Breadcrumbs.tsx` je vykreslí (např. Vzdělávání > Růst > ScioCíle > Název kurzu). Uživatel se kliknutím na breadcrumb vrátí do správné kategorie.
 
 ### 4.6 Doplňkové stránky
 
 ```
 /kalendar                               → Kalendář akcí (Google Calendar)
 /moje-kurzy                             → Moje přihlášené/absolvované kurzy
-/profil                                 → Profil uživatele (volitelné)
+/profil                                 → Profil uživatele (datum/místo narození pro certifikáty)
 ```
 
 ---
@@ -171,7 +173,7 @@ Původní plán počítal s react-big-calendar jako standalone komponentou plně
 - Přihlášení **pouze přes Google OAuth** („Přihlásit se přes Google")
 - Po přihlášení ověření e-mailové domény — povoleno pouze `@scioskola.cz`
 - Neoprávněná doména → redirect na přihlašovací stránku s chybou: „Přístup povolen pouze zaměstnancům ScioPolis"
-- Všechny stránky pod `/portal`, `/vzdelavani`, `/koncepce`, `/kalendar`, `/moje-kurzy` chráněny přes Remix loader (server-side redirect)
+- Všechny stránky pod `/portal`, `/programy`, `/koncepce`, `/kalendar`, `/moje-kurzy` chráněny přes Remix loader (server-side redirect)
 - Veřejně přístupné: `/` (přihlášení), `/auth/callback`
 - Session: 7 dní (Supabase default), automatické obnovení
 
@@ -500,12 +502,12 @@ scio-edu/
 |---|---|---|---|
 | Přihlášení | `/` | Veřejná | Login s brandem ScioEdu + krátký kontext |
 | Rozcestí | `/portal` | Chráněná | Vzdělávání vs. Koncepce, kalendář widget |
-| Vzdělávání | `/vzdelavani` | Chráněná | Přehled 4 podkategorií |
-| Nováček | `/vzdelavani/novacek` | Chráněná | Kurzy a info pro nováčky |
-| Růst | `/vzdelavani/rust` | Chráněná | ScioCíle, Řemeslo, Osobní rozvoj |
-| Týmy | `/vzdelavani/tymy` | Chráněná | Kurzy pro týmy a kvadriády |
-| Cesty | `/vzdelavani/cesty` | Skrytá | Připraveno, nezobrazeno v navigaci |
-| Detail kurzu | `/vzdelavani/kurz/[slug]` | Chráněná | Kompletní info + přihlášení (interní) nebo odkaz ven (externí) |
+| Vzdělávání | `/programy` | Chráněná | Přehled 4 podkategorií |
+| Nováček | `/programy/novacek` | Chráněná | Kurzy a info pro nováčky |
+| Růst | `/programy/rust` | Chráněná | ScioCíle, Řemeslo, Osobní rozvoj |
+| Týmy | `/programy/tymy` | Chráněná | Kurzy pro týmy a kvadriády |
+| Cesty | `/programy/cesty` | Skrytá | Připraveno, nezobrazeno v navigaci |
+| Detail kurzu | `/programy/kurz/[slug]` | Chráněná | Kompletní info + přihlášení (interní) nebo odkaz ven (externí) |
 | Koncepce | `/koncepce` | Chráněná | Aktivní placeholder s existujícími materiály |
 | Kalendář | `/kalendar` | Chráněná | Google Calendar akcí |
 | Moje kurzy | `/moje-kurzy` | Chráněná | Přihlášené a absolvované kurzy |
@@ -710,11 +712,11 @@ Build an internal company intranet called "ScioEdu" for the ScioPolis organizati
 **Authenticated pages:**
 1. `/portal` — Main hub with two visually distinct sections: "Vzdělávání" (primary, larger, more prominent) and "Koncepce" (secondary, active placeholder with intro text and links to existing Google Drive materials managed via Sanity). Include upcoming events widget.
 
-2. `/vzdelavani` — Education section landing with 4 category cards:
-   - "Jsem ve ScioPolis nováček" → `/vzdelavani/novacek`
-   - "Vzdělávání a růst pro každého" → `/vzdelavani/rust`
-   - "Rozvoj pro týmy a kvadriády" → `/vzdelavani/tymy`
-   - "Vzdělávací cesty" → `/vzdelavani/cesty` (HIDDEN, not shown in nav)
+2. `/programy` — Education section landing with 4 category cards:
+   - "Jsem ve ScioPolis nováček" → `/programy/novacek`
+   - "Vzdělávání a růst pro každého" → `/programy/rust`
+   - "Rozvoj pro týmy a kvadriády" → `/programy/tymy`
+   - "Vzdělávací cesty" → `/programy/cesty` (HIDDEN, not shown in nav)
 
 3. Each category page has sub-sections with course listings and cross-links:
    - novacek: kurzy (internal courses + external links to scioedu.cz), informace (link to Koncepce)
@@ -722,7 +724,7 @@ Build an internal company intranet called "ScioEdu" for the ScioPolis organizati
    - tymy: 3 courses listed directly
    - cesty: hidden placeholder structured as ScioCíl → Documents → Didaktika → Kurzy
 
-4. `/vzdelavani/kurz/$slug` — Course detail page. Two variants based on is_external flag:
+4. `/programy/kurz/$slug` — Course detail page. Two variants based on is_external flag:
    - Internal course (is_external=false): title, highlight, target audience, benefits list, multiple terms (dates/location/capacity picker), price, duration, enroll button (Dialog with term selection), lecturer cards (photo + bio, multiple lecturers supported), organizer contact, materials (Google Drive links)
    - External course (is_external=true): shortened detail with highlight, target audience, lecturers, and prominent CTA button "Přejít na přihlášení →" linking to external_url. No internal enrollment.
    - Breadcrumbs built from Sanity data (section + subsection fields), not from URL path

@@ -13,7 +13,7 @@ const sectionMeta: Record<
   novacek: {
     title: "Jsem ve ScioPolis nováček",
     description: "Úvodní kurzy a informace pro nové zaměstnance",
-    href: "/vzdelavani/novacek",
+    href: "/programy/novacek",
     icon: GraduationCap,
     gradient: "from-primary to-primary/80",
     fallbackImage: "/images/hero-classroom.jpg",
@@ -21,7 +21,7 @@ const sectionMeta: Record<
   rust: {
     title: "Vzdělávání a růst pro každého",
     description: "Kurzy zaměřené na osobní rozvoj a řemeslo průvodce",
-    href: "/vzdelavani/rust",
+    href: "/programy/rust",
     icon: Sparkles,
     gradient: "from-secondary to-secondary/80",
     fallbackImage: "/images/hero-learning.jpg",
@@ -29,7 +29,7 @@ const sectionMeta: Record<
   tymy: {
     title: "Rozvoj pro týmy a kvadriády",
     description: "Specializované programy pro týmovou spolupráci",
-    href: "/vzdelavani/tymy",
+    href: "/programy/tymy",
     icon: Users,
     gradient: "from-muted to-muted/80",
     fallbackImage: "/images/hero-team.jpg",
@@ -37,7 +37,7 @@ const sectionMeta: Record<
   cesty: {
     title: "Vzdělávací cesty",
     description: "Dlouhodobé vzdělávací programy a cesty rozvoje",
-    href: "/vzdelavani/cesty",
+    href: "/programy/cesty",
     icon: Map,
     gradient: "from-primary to-primary/80",
     fallbackImage: "/images/hero-discussion.jpg",
@@ -82,7 +82,7 @@ export default function VzdelavaniIndex() {
     <>
       <PageHeader
         fullWidth
-        title="Vzdělávání"
+        title="Programy"
         description="Vyberte si z našich vzdělávacích kategorií"
         imageUrl="/images/hero-classroom.jpg"
         className="-mt-6 mb-8"

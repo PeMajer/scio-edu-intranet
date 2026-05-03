@@ -28,7 +28,12 @@ import {
 import { Calendar, MapPin, Users, Clock, ExternalLink, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatPrague } from "~/lib/format-date";
 import { PortableText } from "@portabletext/react";
+import { RichText } from "~/components/rich-text";
 import type { Course } from "~/lib/sanity.server";
+import { CourseGallery, type GalleryPhoto } from "~/components/course-gallery";
+import { CourseTestimonials } from "~/components/course-testimonials";
+import { HighlightBoxList } from "~/components/highlight-box-list";
+import { HIGHLIGHT_BOXES_PROJECTION } from "~/lib/highlight-box";
 
 function formatDuration(minutes: number): string {
   const days = Math.floor(minutes / (60 * 24));
@@ -54,6 +59,13 @@ function safeFormatDate(value: string | undefined | null, fmt: string): string {
   return formatPrague(d, fmt);
 }
 
+function formatTermStart(date: { date_start?: string; date_start_text?: string }): string {
+  if (date.date_start_text && date.date_start_text.trim().length > 0) {
+    return date.date_start_text;
+  }
+  return safeFormatDate(date.date_start, "d. MMMM yyyy");
+}
+
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
 
@@ -62,7 +74,15 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     `*[_type == "course" && slug.current == $slug][0]{
       ...,
       lecturers[]->,
-      "tags": tags[]->title
+      "tags": tags[]->title,
+      gallery[]{
+        _key,
+        alt,
+        hotspot,
+        crop,
+        asset->{ _id, metadata { dimensions } }
+      },
+      ${HIGHLIGHT_BOXES_PROJECTION}
     }`,
     { slug: params.slug }
   );
@@ -76,6 +96,19 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const lecturerPhotos = (course.lecturers || []).map((l) =>
     l.photo ? imageBuilder.image(l.photo).width(200).url() : null
   );
+  const galleryPhotos: GalleryPhoto[] = (course.gallery || [])
+    .filter((item) => item.asset?._id)
+    .map((item) => {
+      const dim = item.asset?.metadata?.dimensions;
+      return {
+        key: item._key,
+        alt: item.alt ?? course.title,
+        width: dim?.width ?? 1200,
+        height: dim?.height ?? 900,
+        thumb: imageBuilder.image(item).width(600).format("webp").url(),
+        full: imageBuilder.image(item).width(1920).format("webp").url(),
+      };
+    });
 
   const { data: enrollments } = await supabase
     .from("enrollments")
@@ -98,10 +131,26 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     enrolledCountByTerm[e.term_index] = (enrolledCountByTerm[e.term_index] || 0) + 1;
   }
 
-  return json({ course, courseImage, lecturerPhotos, userId: user.id, enrolledTerms: [...enrolledTerms], enrolledCountByTerm }, { headers });
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("birth_date, birth_place")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return json({
+    course,
+    courseImage,
+    lecturerPhotos,
+    galleryPhotos,
+    userId: user.id,
+    enrolledTerms: [...enrolledTerms],
+    enrolledCountByTerm,
+    profileBirthDate: profile?.birth_date ?? null,
+    profileBirthPlace: profile?.birth_place ?? null,
+  }, { headers });
 }
 
-export async function action({ request, params, context }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   const { user, supabase, headers } = await requireAuth(request, context);
 
   const formData = await request.formData();
@@ -126,6 +175,44 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         .eq("status", "enrolled");
       if ((count || 0) >= termCapacity) {
         return json({ error: "Kapacita termínu je již plná" }, { status: 400, headers });
+      }
+    }
+
+    // Birth fields needed for certificate generation. Save into profile if newly provided;
+    // require values to be present (either already in profile or in form data).
+    const formBirthDate = (formData.get("birthDate") as string | null)?.trim() || "";
+    const formBirthPlace = (formData.get("birthPlace") as string | null)?.trim() || "";
+
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("birth_date, birth_place")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const finalBirthDate = formBirthDate || existing?.birth_date || "";
+    const finalBirthPlace = formBirthPlace || existing?.birth_place || "";
+
+    if (!finalBirthDate || !finalBirthPlace) {
+      return json(
+        { error: "Pro přihlášení vyplňte datum a místo narození (potřebujeme je pro certifikát)." },
+        { status: 400, headers }
+      );
+    }
+
+    const profileUpdate: Record<string, string> = {};
+    if (formBirthDate && formBirthDate !== existing?.birth_date) {
+      profileUpdate.birth_date = formBirthDate;
+    }
+    if (formBirthPlace && formBirthPlace !== existing?.birth_place) {
+      profileUpdate.birth_place = formBirthPlace;
+    }
+    if (Object.keys(profileUpdate).length > 0) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user.id);
+      if (profileError) {
+        return json({ error: profileError.message }, { status: 400, headers });
       }
     }
   }
@@ -164,24 +251,55 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   return json({ success: true }, { headers });
 }
 
-function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isEnrolled, isFull }: {
+function TermAction({
+  courseId,
+  courseTitle,
+  termIndex,
+  termLabel,
+  location,
+  isEnrolled,
+  isFull,
+  isPreparing,
+  profileBirthDate,
+  profileBirthPlace,
+}: {
   courseId: string;
   courseTitle: string;
   termIndex: number;
-  dateStart: string;
+  termLabel: string;
   location: string;
   isEnrolled: boolean;
   isFull: boolean;
+  isPreparing: boolean;
+  profileBirthDate: string | null;
+  profileBirthPlace: string | null;
 }) {
   const fetcher = useFetcher<{ error?: string; success?: boolean }>();
   const [open, setOpen] = useState(false);
   const isSubmitting = fetcher.state === "submitting";
+  const needsBirthDate = !profileBirthDate;
+  const needsBirthPlace = !profileBirthPlace;
+  const needsBirthFields = !isEnrolled && (needsBirthDate || needsBirthPlace);
 
   useEffect(() => {
     if (fetcher.data?.success) {
       setOpen(false);
     }
   }, [fetcher.data]);
+
+  const enrollLabel = isPreparing ? "Předběžně přihlásit" : "Přihlásit se";
+  const submitLabel = isPreparing ? "Potvrdit předběžnou přihlášku" : "Potvrdit přihlášku";
+  const submittingLabel = isPreparing ? "Odesílám…" : "Přihlašuji...";
+  const dialogTitle = isEnrolled
+    ? "Odhlásit se z kurzu"
+    : isPreparing
+      ? "Předběžně se přihlásit"
+      : "Přihlásit se na kurz";
+  const dialogDescription = isEnrolled
+    ? "Opravdu se chcete odhlásit z tohoto termínu?"
+    : isPreparing
+      ? "Kurz je ve fázi přípravy. Vaše přihláška bude evidována jako PŘEDBĚŽNÁ a budeme vás kontaktovat, jakmile termín potvrdíme."
+      : "Potvrzením se přihlásíte na vybraný termín kurzu";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -192,32 +310,64 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
           </Button>
         ) : (
           <Button variant="primary" className={`w-full mt-3 ${isFull ? "cursor-not-allowed opacity-50" : ""}`} disabled={isFull}>
-            {isFull ? "Obsazeno" : "Přihlásit se"}
+            {isFull ? "Obsazeno" : enrollLabel}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEnrolled ? "Odhlásit se z kurzu" : "Přihlásit se na kurz"}</DialogTitle>
-          <DialogDescription>
-            {isEnrolled
-              ? "Opravdu se chcete odhlásit z tohoto termínu?"
-              : "Potvrzením se přihlásíte na vybraný termín kurzu"}
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
             <p><span className="text-muted-foreground">Kurz:</span> <span className="font-semibold">{courseTitle}</span></p>
-            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{safeFormatDate(dateStart, "d. MMMM yyyy")}</span></p>
+            <p><span className="text-muted-foreground">Termín:</span> <span className="font-medium">{termLabel}</span></p>
             {location && <p><span className="text-muted-foreground">Místo:</span> <span className="font-medium">{location}</span></p>}
           </div>
           {fetcher.data?.error && (
             <p className="text-sm text-destructive">{fetcher.data.error}</p>
           )}
-          <fetcher.Form method="post">
+          <fetcher.Form method="post" className="space-y-3">
             <input type="hidden" name="intent" value={isEnrolled ? "cancel" : "enroll"} />
             <input type="hidden" name="courseId" value={courseId} />
             <input type="hidden" name="termIndex" value={termIndex} />
+            {needsBirthFields && (
+              <div className="space-y-3 rounded-xl border border-border bg-brand-light-pale/40 p-3">
+                <p className="text-xs text-muted-foreground">
+                  Pro vystavení certifikátu potřebujeme datum a místo narození. Vyplníte je jen jednou — pro další kurzy se uloží do vašeho profilu.
+                </p>
+                {needsBirthDate && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide" htmlFor="birthDate">
+                      Datum narození
+                    </label>
+                    <input
+                      id="birthDate"
+                      type="date"
+                      name="birthDate"
+                      required
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    />
+                  </div>
+                )}
+                {needsBirthPlace && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide" htmlFor="birthPlace">
+                      Místo narození
+                    </label>
+                    <input
+                      id="birthPlace"
+                      type="text"
+                      name="birthPlace"
+                      required
+                      placeholder="např. Praha"
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             <Button
               type="submit"
               variant={isEnrolled ? "destructive" : "primary"}
@@ -226,8 +376,8 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
               disabled={isSubmitting}
             >
               {isSubmitting
-                ? (isEnrolled ? "Odhlašuji..." : "Přihlašuji...")
-                : (isEnrolled ? "Potvrdit odhlášení" : "Potvrdit přihlášku")}
+                ? (isEnrolled ? "Odhlašuji..." : submittingLabel)
+                : (isEnrolled ? "Potvrdit odhlášení" : submitLabel)}
             </Button>
           </fetcher.Form>
         </div>
@@ -237,10 +387,10 @@ function TermAction({ courseId, courseTitle, termIndex, dateStart, location, isE
 }
 
 const sectionLabels: Record<string, { label: string; href: string }> = {
-  novacek: { label: "Nováček", href: "/vzdelavani/novacek" },
-  rust: { label: "Osobní růst", href: "/vzdelavani/rust" },
-  tymy: { label: "Pro týmy", href: "/vzdelavani/tymy" },
-  cesty: { label: "Vzdělávací cesty", href: "/vzdelavani/cesty" },
+  novacek: { label: "Nováček", href: "/programy/novacek" },
+  rust: { label: "Osobní růst", href: "/programy/rust" },
+  tymy: { label: "Pro týmy", href: "/programy/tymy" },
+  cesty: { label: "Vzdělávací cesty", href: "/programy/cesty" },
 };
 
 function HeroBreadcrumb({ section, title }: { section: { label: string; href: string } | null; title: string }) {
@@ -249,7 +399,7 @@ function HeroBreadcrumb({ section, title }: { section: { label: string; href: st
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild className="text-white/60 hover:text-white/90 transition-colors">
-            <Link to="/vzdelavani">Vzdělávání</Link>
+            <Link to="/programy">Programy</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {section && (
@@ -321,9 +471,25 @@ function PriceDisplay({ price }: { price?: number | string }) {
 }
 
 export default function KurzDetail() {
-  const { course, courseImage, lecturerPhotos, enrolledTerms, enrolledCountByTerm } = useLoaderData<typeof loader>();
+  const {
+    course,
+    courseImage,
+    lecturerPhotos,
+    galleryPhotos,
+    enrolledTerms,
+    enrolledCountByTerm,
+    profileBirthDate,
+    profileBirthPlace,
+  } = useLoaderData<typeof loader>();
   const enrolledSet = new Set(enrolledTerms);
   const section = course.section ? sectionLabels[course.section] : null;
+  const isPreparing = course.status === "preparing";
+  const hasHighlight = Array.isArray(course.highlight) && course.highlight.length > 0;
+  const highlightNode = hasHighlight ? (
+    <span className="hero-highlight">
+      <PortableText value={course.highlight!} />
+    </span>
+  ) : undefined;
 
   const heroBreadcrumb = <HeroBreadcrumb section={section} title={course.title} />;
 
@@ -333,7 +499,7 @@ export default function KurzDetail() {
         <PageHeader
           fullWidth
           title={course.title}
-          description={course.highlight}
+          description={highlightNode}
           imageUrl={courseImage || "/images/hero-classroom.jpg"}
           breadcrumb={heroBreadcrumb}
           badges={["Externí kurz", ...(course.tags || [])]}
@@ -345,15 +511,20 @@ export default function KurzDetail() {
             <div className="lg:col-span-2">
 
               {course.description && course.description.length > 0 && (
-                <div className="text-base leading-7 text-foreground/80 space-y-4">
-                  <PortableText value={course.description} />
+                <RichText value={course.description} />
+              )}
+
+              {course.target_audience && course.target_audience.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
+                  <RichText value={course.target_audience} />
                 </div>
               )}
 
-              {course.target_audience && (
+              {course.how_it_works && course.how_it_works.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
-                  <p className="text-foreground/80">{course.target_audience}</p>
+                  <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Jak kurz probíhá</h3>
+                  <RichText value={course.how_it_works} />
                 </div>
               )}
 
@@ -363,7 +534,7 @@ export default function KurzDetail() {
             <div>
               <Card className="sticky top-24 shadow-lg p-6">
                 <PriceDisplay price={course.price} />
-                <Separator className="my-4" />
+                {course.price != null && <Separator className="my-4" />}
                 <Button variant="primary" size="xl" className="w-full" asChild>
                   <a href={course.external_url} target="_blank" rel="noopener noreferrer">
                     Přejít na přihlášení
@@ -383,10 +554,13 @@ export default function KurzDetail() {
       <PageHeader
         fullWidth
         title={course.title}
-        description={course.highlight}
+        description={highlightNode}
         imageUrl={courseImage || "/images/hero-classroom.jpg"}
         breadcrumb={heroBreadcrumb}
-        badges={["Interní kurz", ...(course.tags || [])]}
+        badges={[
+          isPreparing ? "Připravujeme" : "Interní kurz",
+          ...(course.tags || []),
+        ]}
         className="-mt-6 mb-0"
       />
 
@@ -396,15 +570,20 @@ export default function KurzDetail() {
           <div className="lg:col-span-2 pb-0 lg:pb-[100px]">
 
             {course.description && course.description.length > 0 && (
-              <div className="text-base leading-7 text-foreground/80 space-y-4">
-                <PortableText value={course.description} />
+              <RichText value={course.description} />
+            )}
+
+            {course.target_audience && course.target_audience.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
+                <RichText value={course.target_audience} />
               </div>
             )}
 
-            {course.target_audience && (
+            {course.how_it_works && course.how_it_works.length > 0 && (
               <div className="mt-6">
-                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Pro koho je kurz určen</h3>
-                <p className="text-foreground/80">{course.target_audience}</p>
+                <h3 className="font-[family-name:var(--font-poppins)] font-bold text-lg mb-2">Jak kurz probíhá</h3>
+                <RichText value={course.how_it_works} />
               </div>
             )}
 
@@ -439,6 +618,14 @@ export default function KurzDetail() {
             )}
 
             <LecturersSection lecturers={course.lecturers} photos={lecturerPhotos} />
+
+            {galleryPhotos.length > 0 && <CourseGallery photos={galleryPhotos} />}
+
+            {course.testimonials && course.testimonials.length > 0 && (
+              <CourseTestimonials testimonials={course.testimonials} />
+            )}
+
+            <HighlightBoxList boxes={course.highlight_boxes} />
           </div>
 
           {/* Right column — sticky sidebar */}
@@ -453,7 +640,9 @@ export default function KurzDetail() {
 
               <PriceDisplay price={course.price} />
 
-              <Separator className="my-4" />
+              {(course.duration_minutes || course.price != null) && course.dates && course.dates.length > 0 && (
+                <Separator className="my-4" />
+              )}
 
               {course.dates && course.dates.length > 0 && (
                 <>
@@ -467,13 +656,15 @@ export default function KurzDetail() {
                           : "border-border"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-foreground flex items-center gap-1.5 whitespace-nowrap">
                           <Calendar className="text-brand-primary" size={14} />
-                          {safeFormatDate(date.date_start, "d. MMMM yyyy")}
+                          {formatTermStart(date)}
                         </span>
                         {enrolledSet.has(idx) && (
-                          <Badge variant="brand-accent" size="sm">Přihlášen</Badge>
+                          <Badge variant={isPreparing ? "secondary" : "brand-accent"} size="sm" className="whitespace-nowrap">
+                            {isPreparing ? "Předběžně přihlášen" : "Přihlášen"}
+                          </Badge>
                         )}
                       </div>
                       {date.location && (
@@ -501,10 +692,13 @@ export default function KurzDetail() {
                         courseId={course._id}
                         courseTitle={course.title}
                         termIndex={idx}
-                        dateStart={date.date_start}
+                        termLabel={formatTermStart(date)}
                         location={date.location}
                         isEnrolled={enrolledSet.has(idx)}
                         isFull={date.capacity != null && (date.capacity - (enrolledCountByTerm[idx] || 0)) <= 0}
+                        isPreparing={isPreparing}
+                        profileBirthDate={profileBirthDate}
+                        profileBirthPlace={profileBirthPlace}
                       />
                     </div>
                   ))}
@@ -513,7 +707,9 @@ export default function KurzDetail() {
 
               {(course.contact_name || course.contact_email) && (
                 <>
-                  <Separator className="my-4" />
+                  {(course.duration_minutes || course.price != null || (course.dates && course.dates.length > 0)) && (
+                    <Separator className="my-4" />
+                  )}
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Kontakt</p>
                   {course.contact_name && (
                     <p className="font-semibold text-foreground">{course.contact_name}</p>

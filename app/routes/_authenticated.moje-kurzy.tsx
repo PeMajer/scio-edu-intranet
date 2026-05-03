@@ -172,7 +172,7 @@ export default function MojeKurzy() {
             Přihlaste se do svého prvního kurzu a začněte rozvíjet své dovednosti
           </p>
           <Button variant="primary" asChild>
-            <Link to="/vzdelavani">Prohlédnout kurzy</Link>
+            <Link to="/programy">Prohlédnout kurzy</Link>
           </Button>
         </div>
       ) : (
@@ -182,7 +182,7 @@ export default function MojeKurzy() {
             const termDate = course?.dates?.[enrollment.term_index]?.date_start;
             const termLocation = course?.dates?.[enrollment.term_index]?.location;
             const termNote = course?.dates?.[enrollment.term_index]?.note;
-            const courseHref = course?.slug ? `/vzdelavani/kurz/${course.slug.current}` : "#";
+            const courseHref = course?.slug ? `/programy/kurz/${course.slug.current}` : "#";
 
             return (
               <div
