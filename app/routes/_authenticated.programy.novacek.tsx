@@ -16,13 +16,13 @@ import {
 import { RichText } from "~/components/rich-text";
 import { HighlightBoxList } from "~/components/highlight-box-list";
 import { HIGHLIGHT_BOXES_PROJECTION, type HighlightBoxDoc } from "~/lib/highlight-box";
-import type { Course } from "~/lib/sanity.server";
+import type { Course, PortableTextValue, SanityImage } from "~/lib/sanity.server";
 
 type Resource = { label: string; url: string; type?: string };
 type SectionPage = {
-  intro_text?: any[];
+  intro_text?: PortableTextValue;
   resources?: Resource[];
-  cover_image?: any;
+  cover_image?: SanityImage;
   highlight_boxes?: HighlightBoxDoc[];
 };
 

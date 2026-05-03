@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { requireAuth } from "~/lib/supabase.server";
-import { createSanityClient, getImageUrlBuilder } from "~/lib/sanity.server";
+import { createSanityClient, getImageUrlBuilder, type SanityImage } from "~/lib/sanity.server";
 import { PageHeader } from "~/components/layout/page-header";
 import { CourseCard } from "~/components/course-card";
 import { GraduationCap, Sparkles, Users, Map, type LucideIcon } from "lucide-react";
@@ -56,7 +56,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     sanity.fetch<string[]>(
       `array::unique(*[_type == "course" && is_published == true].section)`
     ),
-    sanity.fetch<Array<{ section_key: string; cover_image?: any }>>(
+    sanity.fetch<Array<{ section_key: string; cover_image?: SanityImage }>>(
       `*[_type == "sectionPage" && is_visible == true]{ section_key, cover_image }`
     ),
   ]);
